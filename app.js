@@ -1,5 +1,5 @@
 import express from "express";
-import errorHandlingMiddleware from "./src/middlewares/error-handling.middleware.js";
+import errorHandlingMiddleware from "./src/middlewares/error-handling.mddleware.js";
 import router from "./src/routes/index.js";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
