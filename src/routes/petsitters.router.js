@@ -10,4 +10,6 @@ const petSittersService = new PetSittersService(petSittersRepository);
 
 const petSittersController = new PetSittersController(petSittersService); // PostsController를 인스턴스화 시키니다.
 
+router.get("/sitters", petSittersController.getSitters);
+
 export default router;
