@@ -4,11 +4,11 @@ export class UsersController {
   }
 
   // 회원 가입
-  signupUser = async (req, res, next) => {
+  signup = async (req, res, next) => {
     try {
       const { email, password, confirmPassword, name } = req.body;
 
-      const user = await this.usersService.signupUser(
+      const user = await this.usersService.signup(
         email,
         password,
         confirmPassword,
@@ -28,11 +28,11 @@ export class UsersController {
   };
 
   // 로그인 라우터랑 연결할 컨트롤러 메서드
-  signinUser = async (req, res, next) => {
+  signin = async (req, res, next) => {
     try {
       const { email, password } = req.body;
 
-      const { accessToken, refreshToken } = await signinService.signinUser(
+      const { accessToken, refreshToken } = await signinService.signin(
         email,
         password
       );
@@ -55,10 +55,14 @@ export class UsersController {
   };
 
   //로그아웃
-  signoutUser = async (req, res, next) => {
+  signout = async (req, res, next) => {
     try {
+      const result = await signoutService.signout();
+
+      // 쿠키에서 authorization 제거
       res.clearCookie("authorization", { path: "/", secure: true });
-      return res.status(200).json({ message: "로그아웃 되었습니다." });
+
+      return res.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -68,9 +72,8 @@ export class UsersController {
   deleteUser = async (req, res, next) => {
     try {
       const { userId } = req.params;
-      const { password } = req.body;
 
-      const deleteUser = await this.usersService.deleteUser(userId, password);
+      const deleteUser = await this.usersService.deleteUser(userId);
 
       return res.status(200).json({ data: deleteUser });
     } catch (error) {
