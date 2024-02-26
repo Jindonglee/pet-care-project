@@ -32,7 +32,7 @@ export class UsersController {
     try {
       const { email, password } = req.body;
 
-      const { accessToken, refreshToken } = await signinService.signin(
+      const { accessToken, refreshToken } = await this.usersService.signin(
         email,
         password
       );
@@ -57,7 +57,7 @@ export class UsersController {
   //로그아웃
   signout = async (req, res, next) => {
     try {
-      const result = await signoutService.signout();
+      const result = await this.usersService.signout();
 
       // 쿠키에서 authorization 제거
       res.clearCookie("authorization", { path: "/", secure: true });
