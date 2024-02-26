@@ -8,55 +8,22 @@ export class UsersController {
     try {
       const { email, password, confirmPassword, name } = req.body;
 
-      // 필수 파라미터 검증하기
-      if (!email || !password || !confirmPassword || !name) {
-        return res
-          .status(400)
-          .json({ message: "모든 필수 정보를 입력해야 합니다." });
-      }
-
-      // 이메일 형식 검증하기
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        return res
-          .status(400)
-          .json({ message: "유효한 이메일 주소를 입력해야 합니다." });
-      }
-
-      // 비밀번호 길이 검증하기
-      if (password.length < 6) {
-        return res
-          .status(400)
-          .json({ success: false, message: "비밀번호는 최소 6자 이상입니다." });
-      }
-
-      // 비밀번호 일치 여부 확인
-      if (password !== confirmPassword) {
-        return res
-          .status(400)
-          .json({ message: "비밀번호가 일치하지 않습니다." });
-      }
-
-      // 회원가입 서비스 호출
-      const user = await this.userService.signup(
+      const user = await this.usersService.createUser(
         email,
         password,
-        name,
-        profileImage
+        confirmPassword,
+        name
       );
 
       return res.status(200).json({
-        message: "회원가입이 완료되었습니다.",
         data: {
           email: user.email,
           name: user.name,
         },
       });
-    } catch (err) {
-      console.error(err);
-      return res
-        .status(500)
-        .send({ message: "예기치 못한 서버 에러 발생", error: err.message });
+    } catch (error) {
+      console.error(error);
+      next(error);
     }
   };
 
@@ -113,19 +80,43 @@ export class UsersController {
       );
 
       // 쿠키에 accessToken 설정
-      res.cookie("accessToken", accessToken);
+      res.cookie("accessToken", "Bearer ${accessToken}");
+      console.log(accessToken);
 
       return res.status(200).send({
         message: "로그인 api 입니다.",
         data: {
           accessToken,
+          refreshToken,
         },
       });
-    } catch (err) {
-      console.error(err);
-      return res
-        .status(500)
-        .json({ message: "예기치 못한 서버 에러 발생", error: err.message });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  };
+
+  //로그아웃
+  signoutUser = async (req, res, next) => {
+    try {
+      res.clearCookie("authorization", { path: "/", secure: true });
+      return res.status(200).json({ message: "로그아웃 되었습니다." });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // 회원 탈퇴
+  deleteUser = async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+      const { password } = req.body;
+
+      const deleteUser = await this.usersService.deleteUser(userId, password);
+
+      return res.status(200).json({ data: deleteUser });
+    } catch (error) {
+      next(error);
     }
   };
 }
