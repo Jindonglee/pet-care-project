@@ -4,7 +4,7 @@ export class UsersService {
   }
   //1. 회원가입
   signup = async (email, password, confirmPassword, name) => {
-    const user = await this.usersRepository.signupUser(
+    const user = await this.usersRepository.signup(
       email,
       password,
       confirmPassword,
@@ -54,11 +54,7 @@ export class UsersService {
     }
 
     // 해당하는 이메일이 존재하는지 찾기
-    const user = await prisma.users.findFirst({
-      where: {
-        email,
-      },
-    });
+    const user = await userRepository.findByEmail(email);
 
     // user가 없으면 가입되지 않은 user이므로 에러 발생
     if (!user) {
