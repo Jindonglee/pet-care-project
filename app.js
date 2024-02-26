@@ -3,6 +3,7 @@ import errorHandlingMiddleware from "./src/middlewares/error-handling.mddleware.
 import router from "./src/routes/index.js";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import logMiddleware from "./src/middlewares/log.middleware.js";
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const PORT = 3007;
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(logMiddleware);
 
 app.use("/api", router);
 app.use(errorHandlingMiddleware);
