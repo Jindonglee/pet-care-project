@@ -10,15 +10,15 @@ const usersService = new UsersService(usersRepository);
 const usersController = new UsersController(usersService); // PostsController를 인스턴스화 시키니다.
 
 //회원가입
-router.post("/users/sign-up", usersController.signup);
+router.post("/user/sign-up", usersController.signup);
 
 //로그인
-router.post("/users/sign-in", usersController.signin);
+router.post("/user/sign-in", usersController.signin);
 
 //로그아웃
-router.post("/users/sign-out", usersController.signout);
+router.post("/user/sign-out", usersController.signout);
 
 //계정탈퇴
-router.post("/users/delete-account", usersController.deleteUser);
+router.delete("/user/delete/:userId", usersController.deleteUser);
 
 export default router;

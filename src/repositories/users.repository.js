@@ -7,12 +7,11 @@ export class UsersRepository {
     return await this.prisma.users.findFirst({ where: { email } });
   };
 
-  signin = async (email, password, confirmPassword, name) => {
-    const newUser = await prisma.users.create({
+  signup = async (email, password, name) => {
+    const newUser = await this.prisma.users.create({
       data: {
         email,
         password,
-        confirmPassword,
         name,
       },
       select: { userId: true, email: true, name: true },

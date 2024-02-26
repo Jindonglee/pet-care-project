@@ -1,20 +1,12 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
 export class UsersService {
   constructor(usersRepository) {
     this.usersRepository = usersRepository;
   }
   //1. 회원가입
   signup = async (email, password, confirmPassword, name) => {
-    const user = await this.usersRepository.signup(
-      email,
-      password,
-      confirmPassword,
-      name
-    );
-
-    if (!email || !password || !confirmPassword || !name) {
-      throw new Error("모든 필수 정보를 입력해야 합니다.");
-    }
-
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -34,7 +26,7 @@ export class UsersService {
 
     // 사용자 생성
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await this.usersRepository.createUser(
+    const newUser = await this.usersRepository.signup(
       email,
       hashedPassword,
       name
@@ -65,14 +57,14 @@ export class UsersService {
     }
 
     // password가 맞으면 access token과 refresh token 생성하여 반환
-    const accessToken = jwt.sign(
-      { userId: user.id },
-      process.env.TOKEN_SECRET,
-      { expiresIn: "12h" }
-    );
+    const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+    const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+    const accessToken = jwt.sign({ userId: user.userId }, ACCESS_TOKEN_SECRET, {
+      expiresIn: "12h",
+    });
     const refreshToken = jwt.sign(
       { userId: user.userId },
-      process.env.REFRESH_TOKEN_SECRET,
+      REFRESH_TOKEN_SECRET,
       { expiresIn: "7d" }
     );
 

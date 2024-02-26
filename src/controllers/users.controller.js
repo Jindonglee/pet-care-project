@@ -8,6 +8,10 @@ export class UsersController {
     try {
       const { email, password, confirmPassword, name } = req.body;
 
+      if (!email || !password || !confirmPassword || !name) {
+        throw new Error("모든 필수 정보를 입력해야 합니다.");
+      }
+
       const user = await this.usersService.signup(
         email,
         password,
@@ -38,7 +42,7 @@ export class UsersController {
       );
 
       // 쿠키에 accessToken 설정
-      res.cookie("accessToken", "Bearer ${accessToken}");
+      res.cookie("accessToken", `Bearer ${accessToken}`);
       console.log(accessToken);
 
       return res.status(200).send({
