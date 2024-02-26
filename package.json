@@ -6,6 +6,12 @@
   "author": "sinhong jeong <jsh719803@gmail.com>",
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --forceExit",
+    "test:silent": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --silent --forceExit",
+    "test:coverage": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --coverage --forceExit",
+    "test:unit": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest __tests__/unit --forceExit"
+  },
   "dependencies": {
     "@prisma/client": "^5.10.2",
     "cookie-parser": "^1.4.6",
