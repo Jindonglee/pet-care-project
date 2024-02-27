@@ -12,7 +12,7 @@ export class UsersController {
         throw new Error("모든 필수 정보를 입력해야 합니다.");
       }
 
-      const user = await this.usersService.signup(
+      const { user } = await this.usersService.signup(
         email,
         password,
         confirmPassword,
@@ -20,7 +20,9 @@ export class UsersController {
       );
 
       return res.status(200).json({
+        message: "회원가입이 완료되었습니다.",
         data: {
+          userId: user.userId,
           email: user.email,
           name: user.name,
         },
@@ -46,11 +48,11 @@ export class UsersController {
       console.log(accessToken);
 
       return res.status(200).send({
-        message: "로그인 api 입니다.",
-        data: {
-          accessToken,
-          refreshToken,
-        },
+        message: "로그인 되었습니다",
+        // data: {
+        //   accessToken,
+        //   refreshToken,
+        // },
       });
     } catch (error) {
       console.error(error);

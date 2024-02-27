@@ -5,6 +5,7 @@ export class UsersService {
   constructor(usersRepository) {
     this.usersRepository = usersRepository;
   }
+
   //1. 회원가입
   signup = async (email, password, confirmPassword, name) => {
     // 이메일 형식 검증
@@ -32,8 +33,15 @@ export class UsersService {
       name
     );
 
-    // 비즈니스 로직을 수행한 후 사용자에게 보여줄 데이터를 가공합니다.
-    return { message: "회원가입이 완료되었습니다.", user: newUser };
+    // 사용자 정보를 가공하여 반환
+    const sanitizedUser = {
+      userId: newUser.userId,
+      email: newUser.email,
+      name: newUser.name,
+      createdAt: newUser.createdAt,
+    };
+
+    return { message: "회원가입이 완료되었습니다.", user: sanitizedUser };
   };
 
   // 2. 로그인
