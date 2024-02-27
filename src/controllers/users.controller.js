@@ -8,10 +8,6 @@ export class UsersController {
     try {
       const { email, password, confirmPassword, name } = req.body;
 
-      if (!email || !password || !confirmPassword || !name) {
-        throw new Error("모든 필수 정보를 입력해야 합니다.");
-      }
-
       const { user } = await this.usersService.signup(
         email,
         password,
@@ -27,9 +23,9 @@ export class UsersController {
           name: user.name,
         },
       });
-    } catch (error) {
-      console.error(error);
-      next(error);
+    } catch (err) {
+      console.error(err);
+      next(err);
     }
   };
 
@@ -54,9 +50,9 @@ export class UsersController {
         //   refreshToken,
         // },
       });
-    } catch (error) {
-      console.error(error);
-      next(error);
+    } catch (err) {
+      console.error(err);
+      next(err);
     }
   };
 
@@ -69,8 +65,8 @@ export class UsersController {
       res.clearCookie("authorization", { path: "/", secure: true });
 
       return res.status(200).json(result);
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   };
 
@@ -82,8 +78,8 @@ export class UsersController {
       const deleteUser = await this.usersService.deleteUser(userId);
 
       return res.status(200).json({ data: deleteUser });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   };
 }

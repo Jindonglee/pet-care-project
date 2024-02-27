@@ -14,6 +14,19 @@ export class UsersService {
       throw new Error("유효한 이메일 주소를 입력해야 합니다.");
     }
 
+    if (!email) {
+      throw new Error("email은 필수 입력값입니다.");
+    }
+    if (!password) {
+      throw new Error("password는 필수 입력값입니다.");
+    }
+    if (!name) {
+      throw new Error("name은 필수 입력값입니다.");
+    }
+    if (!confirmPassword) {
+      throw new Error("confirmPassword는 필수 입력값입니다.");
+    }
+
     // 비밀번호 일치 여부 확인
     if (password !== confirmPassword) {
       throw new Error("비밀번호가 일치하지 않습니다.");
