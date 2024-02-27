@@ -28,6 +28,7 @@ export class ReviewRepository {
               name : true,
             }
           },
+          sitterId : true,
           reivewId : true,
           title : true,
           content : true,
