@@ -56,13 +56,19 @@ export class UsersController {
     }
   };
 
-  //로그아웃
   signout = async (req, res, next) => {
     try {
+      const accessToken = req.cookies.accessToken;
+
+      if (!accessToken) {
+        // 클라이언트에게 로그인 상태가 아니라는 메시지 전달
+        return res.status(401).json({ message: "로그인되어 있지 않습니다." });
+      }
+
       const result = await this.usersService.signout();
 
-      // 쿠키에서 authorization 제거
-      res.clearCookie("authorization", { path: "/", secure: true });
+      // 쿠키에서 accessToken 제거
+      res.clearCookie("accessToken", { path: "/", secure: true });
 
       return res.status(200).json(result);
     } catch (err) {

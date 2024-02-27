@@ -3,7 +3,6 @@ import { prisma } from "../utils/prisma/index.js";
 import { UsersController } from "../controllers/users.controller.js";
 import { UsersService } from "../services/users.service.js";
 import { UsersRepository } from "../repositories/users.repository.js";
-import isLoggedIn from "../middlewares/login.middleware.js";
 
 const router = express.Router();
 
@@ -15,7 +14,7 @@ const usersController = new UsersController(usersService); // PostsController를
 router.post("/user/sign-up", usersController.signup);
 
 //로그인
-router.post("/user/sign-in", isLoggedIn, usersController.signin);
+router.post("/user/sign-in", usersController.signin);
 
 //로그아웃
 router.post("/user/sign-out", usersController.signout);
