@@ -20,7 +20,7 @@ export class UsersRepository {
   };
 
   findUserById = async (userId) => {
-    const user = await this.prisma.users.findFirst({
+    const user = await this.prisma.users.findUnique({
       where: {
         userId: +userId,
       },
