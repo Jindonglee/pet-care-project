@@ -8,12 +8,16 @@ export class UsersController {
     try {
       const { email, password, confirmPassword, name } = req.body;
 
-      const { user } = await this.usersService.signup(
+      const result = await this.usersService.signup(
         email,
         password,
         confirmPassword,
         name
       );
+
+      if (result.error) {
+        return res.status(400).json({ message: result.error });
+      }
 
       return res.status(200).json({
         message: "회원가입이 완료되었습니다.",
@@ -65,20 +69,9 @@ export class UsersController {
   // 로그아웃
   signout = async (req, res, next) => {
     try {
-      // 쿠키에서 accessToken과 refreshToken 제거
-      const clearAccessToken = await this.usersService.clearAccessTokenCookie(
-        res
-      );
-      const clearRefreshToken = await this.usersService.clearRefreshTokenCookie(
-        res
-      );
-
-      // 쿠키 제거 중 오류가 발생하면 처리
-      if (!clearAccessToken || !clearRefreshToken) {
-        return res
-          .status(500)
-          .json({ message: "쿠키 제거 중 오류가 발생했습니다." });
-      }
+      // 쿠키 제거
+      res.clearCookie("accessToken", { path: "/", secure: true });
+      res.clearCookie("refreshToken", { path: "/", secure: true });
 
       // 클라이언트에게 로그인 상태가 아니라는 메시지 전달
       if (!req.cookies.accessToken || !req.cookies.refreshToken) {
@@ -100,19 +93,18 @@ export class UsersController {
       const userId = req.params.id;
       const { password } = req.body;
 
-      // 사용자 비밀번호 검증
-      const isPasswordValid = await this.usersService.verifyUserPassword(
-        userId,
-        password
-      );
-      if (!isPasswordValid) {
-        return res
-          .status(401)
-          .json({ message: "비밀번호가 올바르지 않습니다." });
-      }
-      const deleteUser = await this.usersService.deleteUser(userId);
+      // 사용자 서비스를 사용하여 사용자 비밀번호 검증 및 삭제 수행
+      const result = await this.usersService.deleteUser(userId, password);
 
-      return res.status(200).json({ data: deleteUser });
+      // 삭제가 성공했을 경우
+      if (result.success) {
+        return res
+          .status(200)
+          .json({ message: "사용자가 성공적으로 삭제되었습니다." });
+      } else {
+        // 삭제가 실패했을 경우 (예: 비밀번호가 올바르지 않음)
+        return res.status(401).json({ message: result.message });
+      }
     } catch (err) {
       next(err);
     }

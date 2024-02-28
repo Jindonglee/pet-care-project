@@ -7,7 +7,7 @@ export class UsersService {
   }
 
   //1. 회원가입
-  signup = async (userId, email, password, confirmPassword, name) => {
+  signup = async (email, password, confirmPassword, name) => {
     // 이메일 중복 체크
     try {
       if (!email) {
@@ -39,18 +39,18 @@ export class UsersService {
       if (password !== confirmPassword) {
         throw new Error("비밀번호가 일치하지 않습니다.");
       }
+      console.log("signup");
 
       // 사용자 생성
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = await this.usersRepository.signup(
-        userId,
         email,
         hashedPassword,
         name
       );
 
       // 사용자 정보를 가공하여 반환
-      if (newUser) {
+      if (user) {
         const user = {
           userId: newUser.userId,
           email: newUser.email,
@@ -101,26 +101,21 @@ export class UsersService {
   };
 
   // 3. 로그아웃
-  signout = async (res) => {
-    try {
-      // 쿠키에서 accessToken과 refreshToken 제거
-      res.clearCookie("accessToken", { path: "/", secure: true });
-      res.clearCookie("refreshToken", { path: "/", secure: true });
-
-      return { message: "로그아웃 되었습니다." };
-    } catch (error) {
-      throw new Error("쿠키 제거 중 오류가 발생했습니다.");
-    }
-  };
-  // 4. 계정 삭제
-  deleteUser = async (userId) => {
-    const user = await this.usersRepository.findUserById(userId);
-
-    if (!user) {
-      throw new Error("존재하지 않는 사용자입니다.");
-    }
-
-    await this.usersRepository.deleteUserById(userId);
-    return { message: "사용자 정보가 삭제되었습니다." };
+  signout = async () => {
+    return { message: "로그아웃 되었습니다." };
   };
 }
+// 4. 계정 삭제
+deleteUser = async (userId, password) => {
+  // 사용자 비밀번호 검증
+  const isPasswordValid = await this.verifyUserPassword(userId, password);
+
+  // 비밀번호가 올바르지 않을 경우
+  if (!isPasswordValid) {
+    return { success: false, message: "비밀번호가 올바르지 않습니다." };
+  }
+
+  // 비밀번호가 올바를 경우 사용자 삭제 수행
+  const deleteUser = await this.usersRepository.deleteUser(userId);
+  return { success: true, deleteUser };
+};

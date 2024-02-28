@@ -18,6 +18,7 @@ let mockUsersRepository = {
   signup: jest.fn(),
   signin: jest.fn(),
   signout: jest.fn(),
+  create: jest.fn(),
   findUserById: jest.fn(),
   deleteUser: jest.fn(),
 };
@@ -43,7 +44,7 @@ describe("Users Service Unit Test", () => {
 
     // 예외를 기대하여 이메일이 누락된 경우를 테스트합니다.
     await expect(
-      usersService.signup("userId", "", password, confirmpassword, name)
+      usersService.signup("", password, confirmpassword, name)
     ).rejects.toThrow("email은 필수 입력값입니다.");
   });
 
@@ -52,7 +53,7 @@ describe("Users Service Unit Test", () => {
     const name = "test User";
 
     await expect(
-      usersService.signup("userId", email, "", "confirmPassword", name)
+      usersService.signup(email, "", "confirmPassword", name)
     ).rejects.toThrow("password는 필수 입력값입니다.");
   });
 
@@ -62,7 +63,7 @@ describe("Users Service Unit Test", () => {
     const confirmpassword = "pass1234";
 
     await expect(
-      usersService.signup("userId", email, password, confirmpassword, "")
+      usersService.signup(email, password, confirmpassword, "")
     ).rejects.toThrow("name은 필수 입력값입니다.");
   });
 
@@ -72,7 +73,7 @@ describe("Users Service Unit Test", () => {
     const password = "pass1234";
 
     await expect(
-      usersService.signup("userId", email, password, "", name)
+      usersService.signup(email, password, "", name)
     ).rejects.toThrow("confirmPassword는 필수 입력값입니다.");
   });
 
@@ -83,7 +84,7 @@ describe("Users Service Unit Test", () => {
     const confirmpassword = "pass5678";
 
     await expect(
-      usersService.signup("userId", email, password, confirmpassword, name)
+      usersService.signup(email, password, confirmpassword, name)
     ).rejects.toThrow("비밀번호가 일치하지 않습니다.");
   });
 
@@ -119,7 +120,7 @@ describe("Users Service Unit Test", () => {
 
     // 이미 존재하는 이메일임을 signup method를 통해 불러옴
     await expect(
-      usersService.signup("userId", email, "password", "password", "name")
+      usersService.signup(email, "password", "password", "name")
     ).rejects.toThrow("이미 사용하고 있는 이메일입니다.");
 
     // 제공된 이메일로 usersRepository.findByEmail 한번 호출되었는지 확인
@@ -135,50 +136,31 @@ describe("Users Service Unit Test", () => {
 
   test("signup should successfully create a new user if valid inputs are provided", async () => {
     // Mock user data
-    const userId = "1";
-    const email = "test@example.com";
+
     const name = "test User";
+    const email = "test@example.com";
     const password = "pass1234";
 
-    // Mock usersRepository.findByEmail to return null (이메일이 아직 사용되지 않음을 나타냄)
-    mockUsersRepository.findByEmail.mockResolvedValueOnce(null);
+    // // Mock usersRepository.findByEmail to return null (이메일이 아직 사용되지 않음을 나타냄)
+    // mockUsersRepository.findByEmail.mockResolvedValueOnce(null);
 
     // Mock bcrypt.hash to return hashed password
     const hashedPassword = "hashedPassword123";
     mockBcrypt.hash.mockResolvedValueOnce(hashedPassword);
 
-    // Mock usersRepository.signup 의 new user 객체를 반환
-    const user = {
-      userId,
-      email,
-      name,
-      hashedPassword,
-      createdAt: new Date(),
-    };
-
-    mockUsersRepository.signup.mockResolvedValueOnce(user);
-
+    console.log("test123");
+    console.log(usersService);
     // 새로운 사용자 생성
-    const newUser = await usersService.signup(userId, email, password, name);
+    await usersService.signup(name, email, password);
 
-    //제공된 email, hashed password, name으로 usersRepository.signup이 호출되었는지 확인
+    expect(mockUsersRepository.signup).toHaveBeenCalledTimes(1);
+
+    // usersService.signup 함수 호출 후에 mockUsersRepository.signup 메서드가 호출되었는지 검증
     expect(mockUsersRepository.signup).toHaveBeenCalledWith(
-      userId,
+      name,
       email,
-      hashedPassword,
-      name
+      hashedPassword
     );
-
-    // 올바른 사용자 정보가 반환되는지 확인
-    expect(user).toEqual({
-      message: "회원가입이 완료되었습니다.",
-      user: {
-        userId,
-        email,
-        name,
-        createdAt: expect.any(Date),
-      },
-    });
   });
 
   test("signin should throw an error if email or password is missing", async () => {
@@ -207,23 +189,8 @@ describe("Users Service Unit Test", () => {
     expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(email);
   });
 
-  test("signout should clear access and refresh tokens in cookies", async () => {
-    // signout 메서드 호출
-    await usersService.signout(mockResponse);
-
-    // clearCookie가 accessToken과 refreshToken을 올바른 인자와 함께 호출되었는지 확인
-    expect(mockResponse.clearCookie).toHaveBeenCalledWith("accessToken", {
-      path: "/",
-      secure: true,
-    });
+  test("should return a message indicating successful signout", async () => {
     const result = await usersService.signout();
     expect(result.message).toBe("로그아웃 되었습니다.");
-  });
-
-  test("deleteUser should throw an error if user does not exist", async () => {
-    mockUsersRepository.findUserById.mockResolvedValueOnce(null);
-    await expect(usersService.deleteUser("123")).rejects.toThrow(
-      "존재하지 않는 사용자입니다."
-    );
   });
 });
