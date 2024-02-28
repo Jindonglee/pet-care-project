@@ -31,6 +31,8 @@ model reservation {
   petsitters      petsitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade, map: "Reservation_sitterId_fkey")
   users           users      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "Reservation_userId_fkey")
 
+  reserveState String @map("reserveState") @default("확인 대기 중")
+
   @@index([sitterId], map: "Reservation_sitterId_fkey")
   @@index([userId], map: "Reservation_userId_fkey")
 }
