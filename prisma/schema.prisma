@@ -35,23 +35,7 @@ model reservation {
   @@index([userId], map: "Reservation_userId_fkey")
 }
 
-model review {
-  postId     Int         @id @default(autoincrement())
-  sitterId   Int
-  userId     Int
-  title      String
-  content    String      @db.Text
-  rate       review_rate
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime
-  petsitters petsitters  @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade, map: "Review_sitterId_fkey")
-  users      users       @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "Review_userId_fkey")
 
-  @@index([sitterId], map: "Review_sitterId_fkey")
-  @@index([userId], map: "Review_userId_fkey")
-}
-
-<<<<<<< HEAD
 model Review {
   reviewId        Int          @id @default(autoincrement()) @map("reviewId")
   sitterId        Int          @map("sitterId")
@@ -64,8 +48,7 @@ model Review {
 
   users Users @relation (fields: [userId], references: [userId], onDelete: Cascade)
   petsitter PetSitters @relation (fields: [sitterId], references: [sitterId], onDelete: Cascade)
-
-=======
+}
 model users {
   userId      Int           @id @default(autoincrement())
   name        String
@@ -74,7 +57,6 @@ model users {
   createdAt   DateTime      @default(now())
   reservation reservation[]
   review      review[]
->>>>>>> 00be37f9e07adeb5c6772cfcf3b64af6a6b11a4f
 }
 
 enum review_rate {

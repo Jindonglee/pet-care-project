@@ -33,11 +33,8 @@ export class PetSittersController {
   getSittersInfo = async (req, res, next) => {
     let { page } = req.query;
     page = page ? page : 1;
-    try {
-      const sittersInfo = await this.petSittersService.getSittersInfo(page);
-      res.status(200).json(sittersInfo);
-    } catch (err) {
-      next(err);
-    }
+
+    const sittersInfo = await this.petSittersService.getSittersInfo(page);
+    res.status(200).json(sittersInfo);
   };
 }
