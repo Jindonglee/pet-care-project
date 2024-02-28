@@ -26,15 +26,17 @@ model reservation {
   reservationDate DateTime
   petinfo         String     @db.Text
   request         String     @db.Text
+  reserveState String @map("reserveState") @default("확인 대기 중")
   createdAt       DateTime   @default(now())
   updatedAt       DateTime
   petsitters      petsitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade, map: "Reservation_sitterId_fkey")
   users           users      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "Reservation_userId_fkey")
 
+ 
+
   @@index([sitterId], map: "Reservation_sitterId_fkey")
   @@index([userId], map: "Reservation_userId_fkey")
 }
-
 
 model Review {
   reviewId        Int          @id @default(autoincrement()) @map("reviewId")
@@ -57,6 +59,19 @@ model users {
   createdAt   DateTime      @default(now())
   reservation reservation[]
   review      review[]
+  profile     profile[]
+}
+
+model profile {
+  profileId    Int      @id @default(autoincrement()) @map("profileId")
+  userId       Int      @map("userId")
+  birth        Int?     @map("birth")
+  address      String?  @map("address")
+  remarks      String?  @map("remarks")
+  profileImage String?  @map("profileImage")
+  createdAt    DateTime @default(now()) @map("createdAt")
+
+  user users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 enum review_rate {

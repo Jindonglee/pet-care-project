@@ -407,4 +407,37 @@ describe("PetSitters Service Unit Test", () => {
     // 예상되는 결과값을 예상범위 내에서 비교합니다. (예상범위는 적절하게 조정하세요.)
     expect(expectedDistance).toBeCloseTo(0); // 예상되는 결과값과 오차범위를 함께 지정합니다.
   });
+  test("calculates average rate correctly", async () => {
+    // 테스트용 리뷰 데이터
+    const reviews = [
+      { rate: "one" },
+      { rate: "two" },
+      { rate: "three" },
+      { rate: "four" },
+      { rate: "five" },
+    ];
+
+    // PetSittersService 인스턴스 생성
+    const petSittersService = new PetSittersService();
+
+    // calculateTotalRate 함수 호출
+    const averageRate = await petSittersService.calculateTotalRate(reviews);
+
+    // 예상 결과와 일치하는지 검증
+    expect(averageRate).toBe(3); // 모든 리뷰의 총합은 15이며 리뷰의 개수는 5이므로 평균은 3이어야 함
+  });
+
+  test("returns 0 for empty reviews", async () => {
+    // 빈 리뷰 데이터
+    const reviews = [{ rate: " " }];
+
+    // PetSittersService 인스턴스 생성
+    const petSittersService = new PetSittersService();
+
+    // calculateTotalRate 함수 호출
+    const averageRate = await petSittersService.calculateTotalRate(reviews);
+
+    // 예상 결과와 일치하는지 검증
+    expect(averageRate).toBe(0); // 빈 리뷰이므로 평균 평점은 0이어야 함
+  });
 });
