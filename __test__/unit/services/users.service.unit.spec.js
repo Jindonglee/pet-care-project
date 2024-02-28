@@ -211,6 +211,11 @@ describe("Users Service Unit Test", () => {
     // signout 메서드 호출
     await usersService.signout(mockResponse);
 
+    // clearCookie가 accessToken과 refreshToken을 올바른 인자와 함께 호출되었는지 확인
+    expect(mockResponse.clearCookie).toHaveBeenCalledWith("accessToken", {
+      path: "/",
+      secure: true,
+    });
     const result = await usersService.signout();
     expect(result.message).toBe("로그아웃 되었습니다.");
   });
