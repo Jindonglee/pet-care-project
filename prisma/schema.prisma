@@ -14,63 +14,80 @@ datasource db {
 }
 
 model Users {
-  userId        Int         @id @default(autoincrement())  @map("userId")     
-  name          String      @map("name")  
-  email         String      @unique @map("email")
-  password      String?     @map("password")    
-  createdAt     DateTime    @default(now()) @map("createdAt") 
-  reservation   Reservation[]
-  review        Review[]
+  userId    Int      @id @default(autoincrement()) @map("userId")
+  name      String   @map("name")
+  email     String   @unique @map("email")
+  password  String?  @map("password")
+  createdAt DateTime @default(now()) @map("createdAt")
+
+  reservation Reservation[]
+  review      Review[]
+  profile     Profile[]
 
   @@map("Users")
 }
 
-model Reservation{
-  postId        Int          @id @default(autoincrement()) @map("postId")
-  userId        Int          @map("userId")
-  sitterId      Int          @map("sitterId")
-  reservationDate DateTime   @map("reservationDate")
-  petinfo       String       @db.Text @map("petinfo")
-  request       String        @db.Text @map("request")
-  createdAt     DateTime      @default(now()) @map("createdAt")
-  updatedAt     DateTime      @updatedAt @map("updatedAt")
+model Profile {
+  profileId    Int      @id @default(autoincrement()) @map("profileId")
+  userId       Int      @map("userId")
+  newPwd       String?  @map("newPwd")
+  birth        Int?     @map("birth")
+  address      String?  @map("address")
+  remarks      String?  @map("remarks")
+  profileImage String?  @map("profileImage")
+  createdAt    DateTime @default(now()) @map("createdAt")
 
-  user Users @relation (fields: [userId], references: [userId], onDelete: Cascade)
-  petsitter PetSitters @relation (fields: [sitterId], references: [sitterId], onDelete: Cascade)
+  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("Profile")
+}
+
+model Reservation {
+  postId          Int      @id @default(autoincrement()) @map("postId")
+  userId          Int      @map("userId")
+  sitterId        Int      @map("sitterId")
+  reservationDate DateTime @map("reservationDate")
+  petInfo         String   @map("petinfo") @db.Text
+  request         String   @map("request") @db.Text
+  createdAt       DateTime @default(now()) @map("createdAt")
+  updatedAt       DateTime @updatedAt @map("updatedAt")
+
+  user      Users      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  petsitter PetSitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade)
+
   @@map("Reservation")
 }
 
 model PetSitters {
-  sitterId      Int         @id @default(autoincrement())  @map("sitterId")     
-  sitterName    String      @map("sitterName")  
-  career        Int         @map("career")    
-  createdAt     DateTime    @default(now()) @map("createdAt")
-  updatedAt     DateTime    @updatedAt @map("updatedAt") 
-  reservation   Reservation[]
-  review        Review[]
+  sitterId    Int           @id @default(autoincrement()) @map("sitterId")
+  sitterName  String        @map("sitterName")
+  career      Int           @map("career")
+  createdAt   DateTime      @default(now()) @map("createdAt")
+  updatedAt   DateTime      @updatedAt @map("updatedAt")
+  reservation Reservation[]
+  review      Review[]
 
   @@map("PetSitters")
 }
 
 model Review {
-  reviewId        Int          @id @default(autoincrement()) @map("postId")
-  sitterId        Int          @map("sitterId")
-  userId          Int          @map("userId")
-  title         String       @map("title")
-  content       String       @db.Text @map("content")
-  rate          rate          @map("rate")
-  createdAt     DateTime      @default(now()) @map("createdAt")
-  updatedAt     DateTime      @updatedAt @map("updatedAt")
+  reviewId  Int      @id @default(autoincrement()) @map("postId")
+  sitterId  Int      @map("sitterId")
+  userId    Int      @map("userId")
+  title     String   @map("title")
+  content   String   @map("content") @db.Text
+  rate      rate     @map("rate")
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
 
-  user Users @relation (fields: [userId], references: [userId], onDelete: Cascade)
-  petsitter PetSitters @relation (fields: [sitterId], references: [sitterId], onDelete: Cascade)
-
+  user      Users      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  petsitter PetSitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade)
 }
+
 enum rate {
   one
   two
   three
   four
   five
-  
 }
