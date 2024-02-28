@@ -40,6 +40,7 @@ describe("Users Repository Unit Test", () => {
 
   test("signup Method", async () => {
     const userData = {
+      userId: "1",
       email: "test@example.com",
       password: "password",
       name: "Test User",
@@ -54,6 +55,7 @@ describe("Users Repository Unit Test", () => {
     mockPrisma.users.create.mockResolvedValue(mockNewUser);
 
     const newUser = await usersRepository.signup(
+      userData.userId,
       userData.email,
       userData.password,
       userData.name
@@ -62,6 +64,7 @@ describe("Users Repository Unit Test", () => {
     //signup 메서드가 Prisma 클라이언트의 create 메서드를 올바르게 호출했는지 확인
     expect(mockPrisma.users.create).toHaveBeenCalledWith({
       data: {
+        userId: userData.userId,
         email: userData.email,
         password: userData.password,
         name: userData.name,
@@ -95,7 +98,7 @@ describe("Users Repository Unit Test", () => {
     const userId = 1;
     mockPrisma.users.delete.mockResolvedValue({ userId });
 
-    // When : deleteUserById 메서드를 호출하여 사용자를 삭제합니다.
+    // When : deleteUserById 메서드를 호출하여 사용자를 삭제
     const deletedUser = await usersRepository.deleteUserById(userId);
 
     // deleteUserById 메서드가 Prisma 클라이언트의 delete 메서드를 올바르게 호출했는지 확인

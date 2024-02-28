@@ -7,9 +7,10 @@ export class UsersRepository {
     return await this.prisma.users.findFirst({ where: { email } });
   };
 
-  signup = async (email, password, name) => {
+  signup = async (userId, email, password, name) => {
     const newUser = await this.prisma.users.create({
       data: {
+        userId,
         email,
         password,
         name,
