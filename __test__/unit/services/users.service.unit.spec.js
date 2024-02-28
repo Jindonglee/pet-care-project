@@ -1,10 +1,12 @@
 import { jest } from "@jest/globals";
 import { UsersService } from "../../../src/services/users.service.js";
 import { expect } from "@jest/globals";
+import jwt from "jsonwebtoken";
 
 //Mock bcrypt 모듈
 let mockBcrypt = {
   hash: jest.fn((password, saltRounds) => Promise.resolve(`hashed${password}`)), // 비밀번호를 해시합니다.
+  compare: jest.fn().mockResolvedValueOnce(true),
 };
 
 // 가짜 응답 객체 생성
@@ -15,10 +17,10 @@ let mockResponse = {
 // usersRepository는 아래의 4개 메서드만 지원하고 있습니다.
 let mockUsersRepository = {
   findByEmail: jest.fn(),
+  compare: jest.fn(),
   signup: jest.fn(),
   signin: jest.fn(),
   signout: jest.fn(),
-  create: jest.fn(),
   findUserById: jest.fn(),
   deleteUser: jest.fn(),
 };
@@ -136,31 +138,47 @@ describe("Users Service Unit Test", () => {
 
   test("signup should successfully create a new user if valid inputs are provided", async () => {
     // Mock user data
-
-    const name = "test User";
+    const name = "Test User";
     const email = "test@example.com";
     const password = "pass1234";
-
-    // // Mock usersRepository.findByEmail to return null (이메일이 아직 사용되지 않음을 나타냄)
-    // mockUsersRepository.findByEmail.mockResolvedValueOnce(null);
 
     // Mock bcrypt.hash to return hashed password
     const hashedPassword = "hashedPassword123";
     mockBcrypt.hash.mockResolvedValueOnce(hashedPassword);
 
-    console.log("test123");
-    console.log(usersService);
-    // 새로운 사용자 생성
-    await usersService.signup(name, email, password);
+    // Mock usersRepository.signup to return a new user object
+    const newUser = {
+      userId: "1",
+      email: "test@example.com",
+      password: hashedPassword, // Return hashed password
+      name: "Test User",
+      createdAt: new Date(), // Mock createdAt timestamp
+    };
+    mockUsersRepository.signup.mockResolvedValueOnce(newUser);
 
+    // Call the signup method of usersService
+    const result = await usersService.signup(email, password, password, name);
+
+    // Verify the result
+    expect(result.message).toBe("회원가입이 완료되었습니다.");
+    expect(result.user).toEqual({
+      userId: newUser.userId,
+      email: newUser.email,
+      name: newUser.name,
+      createdAt: newUser.createdAt,
+    });
+
+    // Verify that usersRepository.signup was called with the correct arguments
     expect(mockUsersRepository.signup).toHaveBeenCalledTimes(1);
-
-    // usersService.signup 함수 호출 후에 mockUsersRepository.signup 메서드가 호출되었는지 검증
     expect(mockUsersRepository.signup).toHaveBeenCalledWith(
-      name,
       email,
-      hashedPassword
+      hashedPassword,
+      name
     );
+
+    // Verify that bcrypt.hash was called with the correct arguments
+    expect(mockBcrypt.hash).toHaveBeenCalledTimes(1);
+    expect(mockBcrypt.hash).toHaveBeenCalledWith(password, 10);
   });
 
   test("signin should throw an error if email or password is missing", async () => {
@@ -187,6 +205,92 @@ describe("Users Service Unit Test", () => {
     // usersRepository.findByEmail이 한 번 호출되었는지 확인합니다.
     expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
     expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(email);
+  });
+
+  test("signin should return access token and refresh token if password is correct", async () => {
+    const email = "test@example.com";
+    const password = "pass1234";
+    const user = {
+      userId: "1",
+      email: "test@example.com",
+      password: await mockBcrypt.hash(password, 10),
+    };
+
+    // 사용자 객체 반환
+    mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
+
+    // Mock bcrypt.compare to return true (비밀번호 일치를 나타냄)
+    mockBcrypt.compare.mockResolvedValueOnce(true);
+
+    //Mock access token and refresh token
+    const accessToken = "mockAccessToken";
+    const refreshToken = "mockRefreshToken";
+
+    //Mock jwt.sign to return access token and refresh token
+    jest
+      .spyOn(jwt, "sign")
+      .mockReturnValueOnce(accessToken)
+      .mockReturnValueOnce(refreshToken);
+
+    // Call the signin method of usersService
+    const result = await usersService.signin(email, password);
+
+    // Verify the result
+    expect(result.accessToken).toBe(accessToken);
+    expect(result.refreshToken).toBe(refreshToken);
+
+    // Verify that usersRepository.findByEmail was called with the correct arguments
+    expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
+    expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(email);
+
+    // Verify that bcrypt.compare was called with the correct arguments
+    expect(mockBcrypt.compare).toHaveBeenCalledTimes(1);
+    expect(mockBcrypt.compare).toHaveBeenCalledWith(password, user.password);
+
+    // Verify that jwt.sign was called with the correct arguments for access token
+    expect(jwt.sign).toHaveBeenCalledWith(
+      { userId: user.userId },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "12h" }
+    );
+
+    // Verify that jwt.sign was called with the correct arguments for refresh token
+    expect(jwt.sign).toHaveBeenCalledWith(
+      { userId: user.userId },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+  });
+
+  test("signin should throw an error if password is incorrect", async () => {
+    // Mock user data
+    const email = "test@example.com";
+    const password = "wrong_password";
+    const user = {
+      userId: "1",
+      email: "test@example.com",
+      password: await mockBcrypt.hash("correct_password", 10), // Hashed password
+      // Mock other user data as needed
+    };
+
+    // Mock usersRepository.findByEmail to return the user object
+    mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
+
+    // Mock bcrypt.compare to return false (indicating password mismatch)
+    mockBcrypt.compare.mockResolvedValueOnce(false);
+
+    // Call the signin method of usersService and expect it to throw an error
+    await expect(usersService.signin(email, password)).rejects.toThrow(
+      "잘못된 비밀번호입니다."
+    );
+
+    // Verify that usersRepository.findByEmail was called with the correct arguments
+    expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
+    expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(email);
+
+    // Verify that bcrypt.compare was called with the correct arguments
+    expect(mockBcrypt.compare).toHaveBeenCalledTimes(1);
+    expect(mockBcrypt.compare).toHaveBeenCalledWith(password, user.password);
   });
 
   test("should return a message indicating successful signout", async () => {

@@ -1,9 +1,10 @@
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export class UsersService {
-  constructor(usersRepository) {
+  constructor(usersRepository, bcrypt, response) {
     this.usersRepository = usersRepository;
+    this.bcrypt = bcrypt; // bcrypt 모듈 주입
+    this.response = response;
   }
 
   //1. 회원가입
@@ -42,7 +43,7 @@ export class UsersService {
       console.log("signup");
 
       // 사용자 생성
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await this.bcrypt.hash(password, 10);
       const newUser = await this.usersRepository.signup(
         email,
         hashedPassword,
@@ -50,16 +51,15 @@ export class UsersService {
       );
 
       // 사용자 정보를 가공하여 반환
-      if (user) {
-        const user = {
-          userId: newUser.userId,
-          email: newUser.email,
-          name: newUser.name,
-          createdAt: newUser.createdAt,
-        };
 
-        return { message: "회원가입이 완료되었습니다.", user };
-      }
+      const user = {
+        userId: newUser.userId,
+        email: newUser.email,
+        name: newUser.name,
+        createdAt: newUser.createdAt,
+      };
+
+      return { message: "회원가입이 완료되었습니다.", user };
     } catch (error) {
       throw error;
     }
@@ -80,7 +80,7 @@ export class UsersService {
     }
 
     // bcrypt를 사용하여 비밀번호 비교
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await this.bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       throw new Error("잘못된 비밀번호입니다.");
     }
