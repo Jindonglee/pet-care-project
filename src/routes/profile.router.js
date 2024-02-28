@@ -9,6 +9,6 @@ const router = express.Router();
 const profileController = new ProfileController();
 
 router.get("/users/me", authMiddleware, profileController.getProfileById);
-router.update("/users/me-updates", profileController.updateProfile);
+router.put("/users/me-updates", profileController.updateProfile);
 
 export default router;
