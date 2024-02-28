@@ -60,6 +60,19 @@ model users {
   createdAt   DateTime      @default(now())
   reservation reservation[]
   review      review[]
+  profile     profile[]
+}
+
+model profile {
+  profileId    Int      @id @default(autoincrement()) @map("profileId")
+  userId       Int      @map("userId")
+  birth        Int?     @map("birth")
+  address      String?  @map("address")
+  remarks      String?  @map("remarks")
+  profileImage String?  @map("profileImage")
+  createdAt    DateTime @default(now()) @map("createdAt")
+
+  user users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 enum review_rate {
