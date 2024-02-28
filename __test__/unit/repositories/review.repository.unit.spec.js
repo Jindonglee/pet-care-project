@@ -5,6 +5,9 @@ import { ReviewRepository } from '../../../src/repositories/review.repository';
 
 // Prisma 클라이언트에서는 아래 5개의 메서드만 사용합니다.
 let mockPrisma = {
+  petSitters: {
+    findFirst: jest.fn(),
+  },
   review: {
     findFirst: jest.fn(),
     findMany: jest.fn(),
@@ -70,13 +73,13 @@ describe('Review Repository Unit Test', () => {
 
   test('findSitterId method', async () => {
     const mockReturn = 'findSitterId String';
-    mockPrisma.review.findFirst.mockReturnValue(mockReturn);
+    mockPrisma.petSitters.findFirst.mockReturnValue(mockReturn);
 
     const findSitterParams = { sitterId: 1}
     const review = await reviewRepository.findSitterId(findSitterParams.sitterId);
     expect(review).toBe(mockReturn);
-    expect(mockPrisma.review.findFirst).toHaveBeenCalledTimes(1);
-    expect(mockPrisma.review.findFirst).toHaveBeenCalledWith({
+    expect(mockPrisma.petSitters.findFirst).toHaveBeenCalledTimes(1);
+    expect(mockPrisma.petSitters.findFirst).toHaveBeenCalledWith({
         where: {
             sitterId:findSitterParams.sitterId,
         }

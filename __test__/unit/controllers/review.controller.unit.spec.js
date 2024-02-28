@@ -3,17 +3,18 @@
 import { jest } from '@jest/globals';
 import { ReviewController } from '../../../src/controllers/review.controller';
 
-// posts.service.js 에서는 아래 5개의 Method만을 사용합니다.
-const mockPostsService = {
-  findAllPosts: jest.fn(),
-  findPostById: jest.fn(),
-  createPost: jest.fn(),
-  updatePost: jest.fn(),
-  deletePost: jest.fn(),
+const mockReviewService = {
+  getReviews: jest.fn(),
+  postReview: jest.fn(),
+  patchReview: jest.fn(),
+  deleteReview: jest.fn()
 };
 
 const mockRequest = {
+  params: jest.fn(),
+  query: jest.fn(),
   body: jest.fn(),
+  user: jest.fn()
 };
 
 const mockResponse = {
@@ -24,9 +25,51 @@ const mockResponse = {
 const mockNext = jest.fn();
 
 // postsController의 Service를 Mock Service로 의존성을 주입합니다.
-const reviewController = new ReviewController(mockPostsService);
+const reviewController = new ReviewController(mockReviewService);
 
-describe('Posts Controller Unit Test', () => {
+
+const sampleReviews= [
+  {   
+      "name": "김일번",
+      "sitterId": 1,
+      "reviewId": 1,
+      "userId": 1,
+      "title": "일번타이틀",
+      "content": "일번컨텐트",
+      "rate": "five",
+      "createdAt": "2023-08-25T03:43:20.4532Z",
+      "updatedAt": "2023-08-25T03:43:20.4532Z"
+  },
+  {
+      "name": "김이번",
+      "sitterId": 1,
+      "reviewId": 2,
+      "userId": 2,
+      "title": "이번타이틀",
+      "content": "이번컨텐트",
+      "rate": "four",
+      "createdAt": "2023-08-26T03:43:20.4532Z",
+      "updatedAt": "2023-08-26T03:43:20.4532Z"
+  }
+];
+
+const sampleReviewRequestBodyParams = {
+  title: '타이틀값',
+  content: '콘텐트값',
+  rate: '레이트값'
+};
+
+const sampleUser =
+  {
+    "userId": 1,
+    "name": "일유저",
+    "email": "1email",
+    "password": "1q2w3e4r",
+    "createdAt": "2023-08-23T18:27:21.4532Z",
+  }
+
+
+describe('Reviews Controller Unit Test', () => {
   // 각 test가 실행되기 전에 실행됩니다.
   beforeEach(() => {
     jest.resetAllMocks(); // 모든 Mock을 초기화합니다.
@@ -35,74 +78,106 @@ describe('Posts Controller Unit Test', () => {
     mockResponse.status.mockReturnValue(mockResponse);
   });
 
-  test('getPosts Method by Success', async () => {
-    const samplePosts = [
-      {
-        postId: 2,
-        nickname: 'Nickname_2',
-        title: 'Title_2',
-        createdAt: new Date('07 October 2011 15:50 UTC'),
-        updatedAt: new Date('07 October 2011 15:50 UTC'),
-      },
-      {
-        postId: 1,
-        nickname: 'Nickname_1',
-        title: 'Title_1',
-        createdAt: new Date('06 October 2011 15:50 UTC'),
-        updatedAt: new Date('06 October 2011 15:50 UTC'),
-      },
-    ];
-
-    mockPostsService.findAllPosts.mockReturnValue(samplePosts);
-    await postsController.getPosts(mockRequest, mockResponse, mockNext);
-    expect(mockPostsService.findAllPosts).toHaveBeenCalledTimes(1);
+  test('getReviews Method Success', async () => {
+    mockRequest.params = sampleUser;
+    mockRequest.query = {order:"desc"};
+    mockReviewService.getReviews.mockReturnValue(sampleReviews);
+    await reviewController.getReviews(mockRequest, mockResponse, mockNext);
+    expect(mockReviewService.getReviews).toHaveBeenCalledTimes(1);
     expect(mockResponse.status).toHaveBeenCalledTimes(1);
-    expect(mockResponse.status).toHaveBeenCalledWith(200);
+    expect(mockResponse.status).toHaveBeenCalledWith(201);
     expect(mockResponse.json).toHaveBeenCalledTimes(1);
     expect(mockResponse.json).toHaveBeenCalledWith({
-        data: samplePosts
+        data: sampleReviews
     })
   });
 
-  test('createPost Method by Success', async () => {
-    const createPostRequestBodyParams = {
-      nickname: 'Nickname_Success',
-      password: 'Password_Success',
-      title: 'Title_Success',
-      content: 'Content_Success',
-    };
-    mockRequest.body = createPostRequestBodyParams;
-    const createPostReturnValue = {
-        postId: 1,
-        ...createPostRequestBodyParams,
+
+
+
+  test('postReview Method Success', async () => {
+    mockRequest.user = sampleUser;
+    mockRequest.params = {sitterId :'1'};
+    mockRequest.body = sampleReviewRequestBodyParams;
+    const createReviewReturnValue = {
+        reviewId: 1,
+        ...sampleReviewRequestBodyParams,
         createdAt: new Date().toString(),
         updatedAt: new Date().toString()
     }
-    mockPostsService.createPost.mockReturnValue(createPostReturnValue);
-    await postsController.createPost(mockRequest, mockResponse, mockNext);
-    expect(mockPostsService.createPost).toHaveBeenCalledTimes(1);
-    expect(mockPostsService.createPost).toHaveBeenCalledWith(
-        createPostRequestBodyParams.nickname,
-        createPostRequestBodyParams.password,
-        createPostRequestBodyParams.title,
-        createPostRequestBodyParams.content
+    mockReviewService.postReview.mockReturnValue(createReviewReturnValue);
+    await reviewController.postReview(mockRequest, mockResponse, mockNext);
+    expect(mockReviewService.postReview).toHaveBeenCalledTimes(1);
+    expect(mockReviewService.postReview).toHaveBeenCalledWith(
+      sampleUser.userId,
+      '1',
+      sampleReviewRequestBodyParams.title,
+      sampleReviewRequestBodyParams.content,
+      sampleReviewRequestBodyParams.rate
     );
     expect(mockResponse.status).toHaveBeenCalledTimes(1);
     expect(mockResponse.status).toHaveBeenCalledWith(201);
     expect(mockResponse.json).toHaveBeenCalledTimes(1);
     expect(mockResponse.json).toHaveBeenCalledWith({
-        data: createPostReturnValue
+        data: createReviewReturnValue
     });
   });
 
-  test('createPost Method by Invalid Params Error', async () => {
-    mockRequest.body = {
-      nickname: 'Nickname_InvalidParamsError',
-      password: 'Password_InvalidParamsError',
-    };
-    await postsController.createPost(mockRequest, mockResponse, mockNext);
-    
-    expect(mockNext).toHaveBeenCalledWith(new Error("InvalidParamsError"));
+
+
+
+  test('patchReview Method Success', async () => {
+    mockRequest.user = sampleUser;
+    mockRequest.params = {reviewId :'1'};
+    mockRequest.body = sampleReviewRequestBodyParams;
+    const patchReviewReturnValue = {
+        reviewId: 1,
+        ...sampleReviewRequestBodyParams,
+        createdAt: new Date().toString(),
+        updatedAt: new Date().toString()
+    }
+    mockReviewService.patchReview.mockReturnValue(patchReviewReturnValue);
+    await reviewController.patchReview(mockRequest, mockResponse, mockNext);
+    expect(mockReviewService.patchReview).toHaveBeenCalledTimes(1);
+    expect(mockReviewService.patchReview).toHaveBeenCalledWith(
+      sampleUser.userId,
+      '1',
+      sampleReviewRequestBodyParams.title,
+      sampleReviewRequestBodyParams.content,
+      sampleReviewRequestBodyParams.rate
+    );
+    expect(mockResponse.status).toHaveBeenCalledTimes(1);
+    expect(mockResponse.status).toHaveBeenCalledWith(201);
+    expect(mockResponse.json).toHaveBeenCalledTimes(1);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+        data: patchReviewReturnValue
+    });
   });
 
+
+
+
+  test('deleteReview Method Success', async () => {
+    mockRequest.user = sampleUser;
+    mockRequest.params = {reviewId :'1'};
+    const patchReviewReturnValue = {
+        reviewId: 1,
+        ...sampleReviewRequestBodyParams,
+        createdAt: new Date().toString(),
+        updatedAt: new Date().toString()
+    }
+    mockReviewService.deleteReview.mockReturnValue(patchReviewReturnValue);
+    await reviewController.deleteReview(mockRequest, mockResponse, mockNext);
+    expect(mockReviewService.deleteReview).toHaveBeenCalledTimes(1);
+    expect(mockReviewService.deleteReview).toHaveBeenCalledWith(
+      sampleUser.userId,
+      '1',
+    );
+    expect(mockResponse.status).toHaveBeenCalledTimes(1);
+    expect(mockResponse.status).toHaveBeenCalledWith(201);
+    expect(mockResponse.json).toHaveBeenCalledTimes(1);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+        data: patchReviewReturnValue
+    });
+  });
 });

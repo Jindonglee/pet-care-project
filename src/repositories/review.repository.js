@@ -4,8 +4,8 @@ export class ReviewRepository {
     this.prisma = prisma;
   }
 
-  findSitterId = async (sitterId) => {
-    return await this.prisma.review.findFirst({
+  findSitterId = async (sitterId) => { // = number
+    return await this.prisma.petSitters.findFirst({ //근데 이건 시터 아닌가??? prisma에 맞춰 수정바람. 어짜피 시터가 있는지만 확인하는 용도.
       where : {sitterId : +sitterId}
     })
   }
@@ -29,7 +29,7 @@ export class ReviewRepository {
             }
           },
           sitterId : true,
-          reivewId : true,
+          reviewId : true,
           title : true,
           content : true,
           rate : true,

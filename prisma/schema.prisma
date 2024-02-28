@@ -53,7 +53,7 @@ model PetSitters {
 }
 
 model Review {
-  reviewId        Int          @id @default(autoincrement()) @map("postId")
+  reviewId        Int          @id @default(autoincrement()) @map("reviewId")
   sitterId        Int          @map("sitterId")
   userId          Int          @map("userId")
   title         String       @map("title")
@@ -62,7 +62,7 @@ model Review {
   createdAt     DateTime      @default(now()) @map("createdAt")
   updatedAt     DateTime      @updatedAt @map("updatedAt")
 
-  user Users @relation (fields: [userId], references: [userId], onDelete: Cascade)
+  users Users @relation (fields: [userId], references: [userId], onDelete: Cascade)
   petsitter PetSitters @relation (fields: [sitterId], references: [sitterId], onDelete: Cascade)
 
 }
