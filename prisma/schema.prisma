@@ -13,21 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
-  userId    Int      @id @default(autoincrement()) @map("userId")
-  name      String   @map("name")
-  email     String   @unique @map("email")
-  password  String?  @map("password")
-  createdAt DateTime @default(now()) @map("createdAt")
-
-  reservation Reservation[]
-  review      Review[]
-  profile     Profile[]
-
-  @@map("Users")
-}
-
-model Profile {
+model profile {
   profileId    Int      @id @default(autoincrement()) @map("profileId")
   userId       Int      @map("userId")
   newPwd       String?  @map("newPwd")
@@ -37,54 +23,63 @@ model Profile {
   profileImage String?  @map("profileImage")
   createdAt    DateTime @default(now()) @map("createdAt")
 
-  user Users @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-  @@map("Profile")
+  user users @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
-model Reservation {
-  postId          Int      @id @default(autoincrement()) @map("postId")
-  userId          Int      @map("userId")
-  sitterId        Int      @map("sitterId")
-  reservationDate DateTime @map("reservationDate")
-  petInfo         String   @map("petinfo") @db.Text
-  request         String   @map("request") @db.Text
-  createdAt       DateTime @default(now()) @map("createdAt")
-  updatedAt       DateTime @updatedAt @map("updatedAt")
-
-  user      Users      @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  petsitter PetSitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade)
-
-  @@map("Reservation")
+model petsitters {
+  sitterId    Int           @id @default(autoincrement())
+  sitterName  String
+  career      Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+  region      String
+  visit       String
+  reservation reservation[]
+  review      review[]
 }
 
-model PetSitters {
-  sitterId    Int           @id @default(autoincrement()) @map("sitterId")
-  sitterName  String        @map("sitterName")
-  career      Int           @map("career")
-  createdAt   DateTime      @default(now()) @map("createdAt")
-  updatedAt   DateTime      @updatedAt @map("updatedAt")
-  reservation Reservation[]
-  review      Review[]
+model reservation {
+  postId          Int        @id @default(autoincrement())
+  userId          Int
+  sitterId        Int
+  reservationDate DateTime
+  petinfo         String     @db.Text
+  request         String     @db.Text
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime
+  petsitters      petsitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade, map: "Reservation_sitterId_fkey")
+  users           users      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "Reservation_userId_fkey")
 
-  @@map("PetSitters")
+  @@index([sitterId], map: "Reservation_sitterId_fkey")
+  @@index([userId], map: "Reservation_userId_fkey")
 }
 
-model Review {
-  reviewId  Int      @id @default(autoincrement()) @map("postId")
-  sitterId  Int      @map("sitterId")
-  userId    Int      @map("userId")
-  title     String   @map("title")
-  content   String   @map("content") @db.Text
-  rate      rate     @map("rate")
-  createdAt DateTime @default(now()) @map("createdAt")
-  updatedAt DateTime @updatedAt @map("updatedAt")
+model review {
+  reviewId  Int         @id @default(autoincrement()) @map("reviewId")
+  sitterId  Int         @map("sitterId")
+  userId    Int         @map("userId")
+  title     String      @map("title")
+  content   String      @map("content") @db.Text
+  rate      review_rate @map("rate")
+  createdAt DateTime    @default(now()) @map("createdAt")
+  updatedAt DateTime    @updatedAt @map("updatedAt")
 
-  user      Users      @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  petsitter PetSitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade)
+  users     users      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  petsitter petsitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade)
 }
 
-enum rate {
+model users {
+  userId      Int           @id @default(autoincrement())
+  name        String
+  email       String        @unique(map: "Users_email_key")
+  password    String?
+  createdAt   DateTime      @default(now())
+  reservation reservation[]
+  review      review[]
+  profile     profile[]
+}
+
+enum review_rate {
   one
   two
   three

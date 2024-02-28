@@ -8,7 +8,7 @@ const router = express.Router();
 
 const profileController = new ProfileController();
 
-router.get("/users/me", profileController.getProfile);
+router.get("/users/me", profileController.getProfileById);
 router.update("/users/me-updates", profileController.updateProfile);
 
 export default router;
