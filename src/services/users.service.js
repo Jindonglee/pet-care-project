@@ -40,7 +40,6 @@ export class UsersService {
       if (password !== confirmPassword) {
         throw new Error("비밀번호가 일치하지 않습니다.");
       }
-      console.log("signup");
 
       // 사용자 생성
       const hashedPassword = await this.bcrypt.hash(password, 10);
@@ -106,16 +105,22 @@ export class UsersService {
   };
 }
 // 4. 계정 삭제
-deleteUser = async (userId, password) => {
-  // 사용자 비밀번호 검증
-  const isPasswordValid = await this.verifyUserPassword(userId, password);
+deleteUser = async (userId) => {
+  try {
+    // 사용자의 계정을 삭제하기 전에 레포지토리를 통해 사용자를 검색합니다.
+    const user = await this.usersRepository.findById(userId);
 
-  // 비밀번호가 올바르지 않을 경우
-  if (!isPasswordValid) {
-    return { success: false, message: "비밀번호가 올바르지 않습니다." };
+    // 사용자가 존재하지 않는 경우 에러를 throw합니다.
+    if (!user) {
+      throw new Error("사용자를 찾을 수 없습니다.");
+    }
+
+    // 사용자가 존재하는 경우 계정을 삭제합니다.
+    await this.usersRepository.delete(userId);
+
+    return { success: true, message: "계정이 성공적으로 삭제되었습니다." };
+  } catch (error) {
+    // 에러 발생 시 에러 메시지를 반환합니다.
+    return { success: false, message: error.message };
   }
-
-  // 비밀번호가 올바를 경우 사용자 삭제 수행
-  const deleteUser = await this.usersRepository.deleteUser(userId);
-  return { success: true, deleteUser };
 };

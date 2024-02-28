@@ -88,25 +88,27 @@ export class UsersController {
   };
 
   // 계정삭제
-  deleteUser = async (req, res, next) => {
+  eleteUser = async (req, res) => {
     try {
-      const userId = req.params.id;
-      const { password } = req.body;
+      // 클라이언트에서 전송된 토큰을 요청 헤더에서 추출합니다.
+      const token = req.headers.authorization;
 
-      // 사용자 서비스를 사용하여 사용자 비밀번호 검증 및 삭제 수행
-      const result = await this.usersService.deleteUser(userId, password);
-
-      // 삭제가 성공했을 경우
-      if (result.success) {
-        return res
-          .status(200)
-          .json({ message: "사용자가 성공적으로 삭제되었습니다." });
-      } else {
-        // 삭제가 실패했을 경우 (예: 비밀번호가 올바르지 않음)
-        return res.status(401).json({ message: result.message });
+      // 토큰이 없는 경우 에러를 응답합니다.
+      if (!token) {
+        return res.status(401).json({ message: "인증되지 않은 사용자입니다." });
       }
-    } catch (err) {
-      next(err);
+
+      // 토큰을 검증하여 사용자 식별 정보를 추출합니다.
+      const userId = extractUserIdFromToken(token);
+
+      // 해당 계정 삭제를 서비스 레이어로 위임합니다.
+      const result = await this.usersService.deleteUser(userId);
+
+      // 계정 삭제 결과를 클라이언트에 응답합니다.
+      res.json(result);
+    } catch (error) {
+      // 에러 발생 시 클라이언트에 에러 메시지를 응답합니다.
+      res.status(500).json({ error: error.message });
     }
   };
 }

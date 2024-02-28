@@ -7,6 +7,9 @@ import jwt from "jsonwebtoken";
 let mockBcrypt = {
   hash: jest.fn((password, saltRounds) => Promise.resolve(`hashed${password}`)), // 비밀번호를 해시합니다.
   compare: jest.fn().mockResolvedValueOnce(true),
+  compare: jest.fn((password, hashedPassword) =>
+    Promise.resolve(password === "correct_password")
+  ),
 };
 
 // 가짜 응답 객체 생성
@@ -14,15 +17,25 @@ let mockResponse = {
   clearCookie: jest.fn(), // jest.fn()으로 clearCookie 메서드를 가짜 함수로 대체
 };
 
-// usersRepository는 아래의 4개 메서드만 지원하고 있습니다.
+// usersRepository는 아래의 7개 메서드만 지원하고 있습니다.
 let mockUsersRepository = {
   findByEmail: jest.fn(),
   compare: jest.fn(),
   signup: jest.fn(),
   signin: jest.fn(),
   signout: jest.fn(),
-  findUserById: jest.fn(),
-  deleteUser: jest.fn(),
+  verifyUserPassword: jest.fn(),
+
+  deleteUser: jest.fn((userId, password) => {
+    if (password === "correct_password") {
+      return Promise.resolve({ success: true });
+    } else {
+      return Promise.resolve({
+        success: false,
+        message: "비밀번호가 올바르지 않습니다.",
+      });
+    }
+  }),
 };
 
 // usersService의 Repository를 Mock Repository로 의존성을 주입합니다.
@@ -226,7 +239,7 @@ describe("Users Service Unit Test", () => {
     const accessToken = "mockAccessToken";
     const refreshToken = "mockRefreshToken";
 
-    //Mock jwt.sign to return access token and refresh token
+    // access token,refresh token을 반환하기 위해 jwt.sign을 mock
     jest
       .spyOn(jwt, "sign")
       .mockReturnValueOnce(accessToken)
@@ -235,15 +248,15 @@ describe("Users Service Unit Test", () => {
     // Call the signin method of usersService
     const result = await usersService.signin(email, password);
 
-    // Verify the result
+    // 결과가 잘 반환되었는지 확인
     expect(result.accessToken).toBe(accessToken);
     expect(result.refreshToken).toBe(refreshToken);
 
-    // Verify that usersRepository.findByEmail was called with the correct arguments
+    // usersRepository.findByEmail 올바른 인수(email)로 한번 호출 되었는지 확인
     expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
     expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(email);
 
-    // Verify that bcrypt.compare was called with the correct arguments
+    // bcrypt.compare 올바른 인수 password, user.password로 한번 호출된 것을 확인
     expect(mockBcrypt.compare).toHaveBeenCalledTimes(1);
     expect(mockBcrypt.compare).toHaveBeenCalledWith(password, user.password);
 
@@ -273,10 +286,10 @@ describe("Users Service Unit Test", () => {
       // Mock other user data as needed
     };
 
-    // Mock usersRepository.findByEmail to return the user object
+    // Mock usersRepository.findByEmail user 객체로 반환 확인
     mockUsersRepository.findByEmail.mockResolvedValueOnce(user);
 
-    // Mock bcrypt.compare to return false (indicating password mismatch)
+    // bcrypt.compare를 Mock (모의)하여 false를 반환  ( => 비밀번호 불일치를 나타냄)
     mockBcrypt.compare.mockResolvedValueOnce(false);
 
     // Call the signin method of usersService and expect it to throw an error
@@ -284,11 +297,11 @@ describe("Users Service Unit Test", () => {
       "잘못된 비밀번호입니다."
     );
 
-    // Verify that usersRepository.findByEmail was called with the correct arguments
+    // usersRepository.findByEmail 올바른 인수로 호출되었는지 확인
     expect(mockUsersRepository.findByEmail).toHaveBeenCalledTimes(1);
     expect(mockUsersRepository.findByEmail).toHaveBeenCalledWith(email);
 
-    // Verify that bcrypt.compare was called with the correct arguments
+    // bcrypt.compare가 올바른 인수로 호출되었는지 확인
     expect(mockBcrypt.compare).toHaveBeenCalledTimes(1);
     expect(mockBcrypt.compare).toHaveBeenCalledWith(password, user.password);
   });
@@ -297,4 +310,44 @@ describe("Users Service Unit Test", () => {
     const result = await usersService.signout();
     expect(result.message).toBe("로그아웃 되었습니다.");
   });
+});
+
+test("should return failure message if password is incorrect", async () => {
+  const userId = "user123";
+  const Password = "incorrectPassword";
+
+  mockUsersRepository.verifyUserPassword.mockResolvedValueOnce(true); // 올바른 비밀번호일 때
+  // Mock verifyUserPassword 메서드가 올바르지 않은 비밀번호를 반환하도록 설정
+
+  // deleteUser 메서드 호출
+  const result = await usersService.deleteUser(userId, Password);
+
+  // deleteUser 메서드가 실패한 경우 result 객체가 정의되어 있는지 확인
+  expect(result).toBeDefined();
+
+  // deleteUser 메서드가 실패한 경우 success 속성이 없는지 확인
+  expect(result).not.toHaveProperty("success");
+
+  // deleteUser 메서드가 실패한 경우 message 속성이 적절한 메시지인지 확인
+  expect(result.message).toBe("비밀번호가 올바르지 않습니다.");
+});
+
+test("should successfully delete user if password is correct", async () => {
+  const userId = "user123";
+  const Password = "correctPassword";
+
+  // Mock verifyUserPassword 메서드가 올바른 비밀번호를 반환하도록 설정
+  mockUsersRepository.verifyUserPassword.mockResolvedValueOnce(true);
+
+  // deleteUser 메서드가 성공적으로 실행되도록 설정
+  mockUsersRepository.deleteUser.mockResolvedValueOnce({ success: true });
+
+  // deleteUser 메서드 호출
+  const result = await usersService.deleteUser(userId, Password);
+
+  // 비밀번호가 올바른 경우 사용자 삭제가 성공적으로 이루어졌는지 확인
+  expect(result.success).toBe(true);
+
+  // deleteUser 메서드가 올바른 userId로 호출되었는지 확인
+  expect(mockUsersRepository.deleteUser).toHaveBeenCalledWith(userId);
 });
