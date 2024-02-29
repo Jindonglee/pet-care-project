@@ -2,7 +2,7 @@ export class PetSittersRepository {
   constructor(prisma) {
     this.prisma = prisma;
   }
-  /**여기에 작성하심 됩니다. */
+
   getSittersByRegionAndVisit = async (
     region,
     visit,
@@ -103,7 +103,10 @@ export class PetSittersRepository {
       },
     });
 
-    return firstResults.concat(secondResults, thirdResults);
+    const results = await this.mapVisitInData(
+      firstResults.concat(secondResults, thirdResults)
+    );
+    return Promise.all(results);
   };
   getSittersInfo = async (page) => {
     const results = await this.prisma.petsitters.findMany({
@@ -121,6 +124,27 @@ export class PetSittersRepository {
         },
       },
     });
+
     return results;
+  };
+  mapVisitEnum = async (enumValue) => {
+    switch (enumValue) {
+      case "isVisit":
+        return "방문 가능";
+      case "isNotVisit":
+        return "방문 불가";
+      case "pickUp":
+        return "픽업 가능";
+      default:
+        return "";
+    }
+  };
+
+  mapVisitInData = (data) => {
+    // visit 필드를 변환하여 데이터를 반환
+    return data.map(async (item) => ({
+      ...item,
+      visit: await this.mapVisitEnum(item.visit), // visit 필드를 변환
+    }));
   };
 }

@@ -1,16 +1,17 @@
-import jwt from "jsonwebtoken";
-import { prisma } from "../utils/prisma/index.js";
-import ProfileService from "../services/profile.service.js";
+// import jwt from "jsonwebtoken";
+// import { prisma } from "../utils/prisma/index.js";
+// import ProfileService from "../services/profile.service.js";
 
-const profileService = new ProfileSer() / vice();
-
-export default class ProfileController {
-  getProfileById = async (req, res, next) => {
+export class ProfileController {
+  constructor(profileService) {
+    this.profileService = profileService;
+  }
+  getProfile = async (req, res, next) => {
     try {
       const { userId } = req.user;
 
       // 해당하는 userId로 user가 있는지 확인
-      const user = await prisma.users.findFirst({
+      const user = await this.prisma.users.findFirst({
         where: {
           userId,
         },
@@ -51,7 +52,7 @@ export default class ProfileController {
         profileImage,
       } = req.body;
 
-      await ProfileService.updateProfile(
+      await this.profileService.updateProfile(
         userId,
         newPwd,
         checkedPwd,

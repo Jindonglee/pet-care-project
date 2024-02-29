@@ -8,11 +8,15 @@ import LogMiddleware from "./src/middlewares/log.middleware.js";
 dotenv.config();
 
 const app = express();
-const PORT = 5368;
+const PORT = 3007;
 
 app.use(LogMiddleware);
 app.use(express.json());
 app.use(cookieParser());
+app.get("/", (req, res) => {
+  res.send("초면이조 : 반갑습니다");
+});
+
 app.use("/api", router);
 
 app.use(ErrorHandleware);
