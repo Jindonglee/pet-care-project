@@ -6,7 +6,7 @@ export class UsersController {
   // 회원 가입
   signup = async (req, res, next) => {
     try {
-      const { userId, email, password, confirmPassword, name } = req.body;
+      const { email, password, confirmPassword, name } = req.body;
 
       const result = await this.usersService.signup(
         email,
