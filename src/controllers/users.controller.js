@@ -41,10 +41,11 @@ export class UsersController {
       );
 
       //accessToken과 refreshToken을 쿠키에 설정
-      res.cookie("authorization", `Bearer ${accessToken}`, {
-        httpOnly: true,
-        secure: true,
-      });
+      res.cookie("authorization", `Bearer ${accessToken}`),
+        {
+          httpOnly: true,
+          secure: true,
+        };
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: true,
