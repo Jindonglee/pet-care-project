@@ -1,9 +1,13 @@
-import ProfileRepository from "../repositories/profile.repository.js";
+// import ProfileRepository from "../repositories/profile.repository.js";
+import bcrypt from "bcrypt";
 
-const profileRepository = new ProfileRepository();
-
-export default class ProfileService {
-  getProfileById = async () => {};
+export class ProfileService {
+  constructor(profileRepository) {
+    this.profileRepository = profileRepository;
+  }
+  getProfile = async (userId) => {
+    return await this.prisma.profile.findUnique({ where: { userId } });
+  };
 
   updateProfile = async (
     userId,
@@ -23,7 +27,7 @@ export default class ProfileService {
 
     await bcrypt.hash(newPwd, 10);
 
-    await ProfileRepository.updateProfile(
+    await this.profileRepository.updateProfile(
       userId,
       name,
       birth,

@@ -1,8 +1,9 @@
-import { prisma } from "../utils/prisma/index.js";
-
-export default class ProfileRepository {
-  getProfileById = async (userId) => {
-    return await prisma.users.findFirst({ where: { userId } });
+export class ProfileRepository {
+  constructor(prisma) {
+    this.prisma = prisma;
+  }
+  getProfile = async (userId) => {
+    return await this.prisma.users.findFirst({ where: { userId } });
   };
 
   updateProfile = async (
@@ -15,11 +16,9 @@ export default class ProfileRepository {
     remarks,
     profileImage
   ) => {
-    return await prisma.profile.update({
+    return await this.prisma.profile.update({
       where: { userId: +userId },
       data: { newPwd, checkedPwd, name, birth, address, remarks, profileImage },
     });
   };
-
-  updateUsers = async(userId);
 }

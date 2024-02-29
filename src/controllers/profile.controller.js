@@ -1,23 +1,22 @@
-import jwt from "jsonwebtoken";
-import { prisma } from "../utils/prisma/index.js";
-import ProfileService from "../services/profile.service.js";
+// import jwt from "jsonwebtoken";
+// import { prisma } from "../utils/prisma/index.js";
+// import ProfileService from "../services/profile.service.js";
 
-const profileService = new ProfileSer() / vice();
-
-export default class ProfileController {
-  getProfileById = async (req, res, next) => {
+export class ProfileController {
+  constructor(profileService) {
+    this.profileService = profileService;
+  }
+  getProfile = async (req, res, next) => {
     try {
-      // 미들웨어에서 req.user를 설정해줬으니까 여기서 받아올 수 있음
       const { userId } = req.user;
 
-      // 해당하는 userId로 user가 있는지 확인한다.
-      const user = await prisma.users.findFirst({
+      // 해당하는 userId로 user가 있는지 확인
+      const user = await this.prisma.users.findFirst({
         where: {
           userId,
         },
       });
 
-      // user가 있다면 이메일과 이름을 돌려준다.
       if (!user) {
         return res.status(400).send({
           errorMessage: "존재하지 않는 프로필입니다. 확인해주세요!",
@@ -53,7 +52,7 @@ export default class ProfileController {
         profileImage,
       } = req.body;
 
-      await ProfileService.updateProfile(
+      await this.profileService.updateProfile(
         userId,
         newPwd,
         checkedPwd,

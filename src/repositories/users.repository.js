@@ -2,13 +2,15 @@ export class UsersRepository {
   constructor(prisma) {
     this.prisma = prisma;
   }
+
   findByEmail = async (email) => {
     return await this.prisma.users.findFirst({ where: { email } });
   };
 
-  signup = async (email, password, name) => {
+  signup = async (userId, email, password, name) => {
     const newUser = await this.prisma.users.create({
       data: {
+        userId,
         email,
         password,
         name,
@@ -19,7 +21,7 @@ export class UsersRepository {
   };
 
   findUserById = async (userId) => {
-    const user = await this.prisma.users.findFirst({
+    const user = await this.prisma.users.findUnique({
       where: {
         userId: +userId,
       },
@@ -34,6 +36,5 @@ export class UsersRepository {
       },
     });
     return deleteUser;
-
-    updateProfile = async (userId, name, )
-  };}
+  };
+}
