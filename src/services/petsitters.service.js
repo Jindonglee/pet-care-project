@@ -9,7 +9,6 @@ export class PetSittersService {
     try {
       // 사용자의 주소를 이용하여 위도와 경도를 구합니다.
       const { lat: userLat, lng: userLon } = await this.getLatLng(region);
-      console.log({ userLat, userLon });
 
       // 해당 region의 모든 펫시터 정보를 가져옵니다.
       const petsitters =
