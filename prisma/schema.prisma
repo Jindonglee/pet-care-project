@@ -14,7 +14,7 @@ model petsitters {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now())
   region      String
-  visit       String
+  visit       visit         @default(isNotVisit)
   reservation reservation[]
   review      review[]
 }
@@ -23,12 +23,12 @@ model reservation {
   postId          Int        @id @default(autoincrement())
   userId          Int
   sitterId        Int
-  reservationDate DateTime
-  petinfo         String     @db.Text
+  reservation DateTime
+  petInfo         String     @db.Text
   request         String     @db.Text
   reserveState String @map("reserveState") @default("확인 대기 중")
   createdAt       DateTime   @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime   @updatedAt
   petsitters      petsitters @relation(fields: [sitterId], references: [sitterId], onDelete: Cascade, map: "Reservation_sitterId_fkey")
   users           users      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "Reservation_userId_fkey")
 
@@ -38,18 +38,18 @@ model reservation {
   @@index([userId], map: "Reservation_userId_fkey")
 }
 
-model Review {
+model review {
   reviewId        Int          @id @default(autoincrement()) @map("reviewId")
   sitterId        Int          @map("sitterId")
   userId          Int          @map("userId")
   title         String       @map("title")
   content       String       @db.Text @map("content")
-  rate          rate          @map("rate")
+  rate          review_rate          @map("rate")
   createdAt     DateTime      @default(now()) @map("createdAt")
   updatedAt     DateTime      @updatedAt @map("updatedAt")
 
-  users Users @relation (fields: [userId], references: [userId], onDelete: Cascade)
-  petsitter PetSitters @relation (fields: [sitterId], references: [sitterId], onDelete: Cascade)
+  users users @relation (fields: [userId], references: [userId], onDelete: Cascade)
+  petsitter petsitters @relation (fields: [sitterId], references: [sitterId], onDelete: Cascade)
 }
 model users {
   userId      Int           @id @default(autoincrement())
@@ -80,4 +80,10 @@ enum review_rate {
   three
   four
   five
+}
+
+enum visit {
+  isVisit @map("방문 가능")
+  isNotVisit @map("방문 불가")
+  pickUp @map("픽업 가능")
 }

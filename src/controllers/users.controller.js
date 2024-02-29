@@ -6,9 +6,10 @@ export class UsersController {
   // 회원 가입
   signup = async (req, res, next) => {
     try {
-      const { email, password, confirmPassword, name } = req.body;
+      const { userId, email, password, confirmPassword, name } = req.body;
 
       const { user } = await this.usersService.signup(
+        userId,
         email,
         password,
         confirmPassword,
@@ -40,7 +41,7 @@ export class UsersController {
       );
 
       //accessToken과 refreshToken을 쿠키에 설정
-      res.cookie("accessToken", accessToken, {
+      res.cookie("authorization", `Bearer ${accessToken}`, {
         httpOnly: true,
         secure: true,
       });

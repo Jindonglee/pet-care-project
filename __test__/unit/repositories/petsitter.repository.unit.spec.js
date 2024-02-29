@@ -21,13 +21,13 @@ describe("PetSittersRepository", () => {
   describe("getSittersByRegionAndVisit", () => {
     it("should fetch pet sitters by region and visit", async () => {
       const mockResults = [
-        { sitterId: 1, sitterName: "John" },
-        { sitterId: 2, sitterName: "Jane" },
+        { sitterId: 1, sitterName: "John", visit: "" },
+        { sitterId: 2, sitterName: "Jane", visit: "" },
       ];
       mockPrisma.petsitters.findMany.mockResolvedValue(mockResults);
 
       const region = "서울";
-      const visit = "방문 가능";
+      const visit = "isVisit";
       const page = 1;
       const limit = 10;
       const orderKey = "createdAt";
@@ -72,5 +72,31 @@ describe("PetSittersRepository", () => {
       });
       expect(result).toEqual(mockResults);
     });
+  });
+  test("mapVisitEnum converts enum values correctly", async () => {
+    const isVisit = await petSittersRepository.mapVisitEnum("isVisit");
+    const isNotVisit = await petSittersRepository.mapVisitEnum("isNotVisit");
+    const pickUp = await petSittersRepository.mapVisitEnum("pickUp");
+
+    expect(isVisit).toBe("방문 가능");
+    expect(isNotVisit).toBe("방문 불가");
+    expect(pickUp).toBe("픽업 가능");
+  });
+
+  test("mapVisitInData converts visit field in data", async () => {
+    const data = [
+      { sitterId: 1, visit: "isVisit" },
+      { sitterId: 2, visit: "isNotVisit" },
+      { sitterId: 3, visit: "pickUp" },
+    ];
+
+    const convertedDataPromises = petSittersRepository.mapVisitInData(data);
+    const convertedData = await Promise.all(convertedDataPromises);
+
+    expect(convertedData).toEqual([
+      { sitterId: 1, visit: "방문 가능" },
+      { sitterId: 2, visit: "방문 불가" },
+      { sitterId: 3, visit: "픽업 가능" },
+    ]);
   });
 });
