@@ -1,13 +1,14 @@
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 export class UsersService {
-  constructor(usersRepository) {
+  constructor(usersRepository, bcrypt, response) {
     this.usersRepository = usersRepository;
+    this.bcrypt = bcrypt; // bcrypt 모듈 주입
+    this.response = response;
   }
 
   //1. 회원가입
-  signup = async (userId, email, password, confirmPassword, name) => {
+  signup = async (email, password, confirmPassword, name) => {
     // 이메일 중복 체크
     try {
       if (!email) {
@@ -41,25 +42,23 @@ export class UsersService {
       }
 
       // 사용자 생성
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await this.bcrypt.hash(password, 10);
       const newUser = await this.usersRepository.signup(
-        userId,
         email,
         hashedPassword,
         name
       );
 
       // 사용자 정보를 가공하여 반환
-      if (newUser) {
-        const user = {
-          userId: newUser.userId,
-          email: newUser.email,
-          name: newUser.name,
-          createdAt: newUser.createdAt,
-        };
 
-        return { message: "회원가입이 완료되었습니다.", user };
-      }
+      const user = {
+        userId: newUser.userId,
+        email: newUser.email,
+        name: newUser.name,
+        createdAt: newUser.createdAt,
+      };
+
+      return { message: "회원가입이 완료되었습니다.", user };
     } catch (error) {
       throw error;
     }
@@ -80,7 +79,7 @@ export class UsersService {
     }
 
     // bcrypt를 사용하여 비밀번호 비교
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await this.bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       throw new Error("잘못된 비밀번호입니다.");
     }
@@ -101,26 +100,31 @@ export class UsersService {
   };
 
   // 3. 로그아웃
-  signout = async (res) => {
-    try {
-      // 쿠키에서 accessToken과 refreshToken 제거
-      res.clearCookie("accessToken", { path: "/", secure: true });
-      res.clearCookie("refreshToken", { path: "/", secure: true });
-
-      return { message: "로그아웃 되었습니다." };
-    } catch (error) {
-      throw new Error("쿠키 제거 중 오류가 발생했습니다.");
-    }
+  signout = async () => {
+    return { message: "로그아웃 되었습니다." };
   };
+
   // 4. 계정 삭제
   deleteUser = async (userId) => {
-    const user = await this.usersRepository.findUserById(userId);
+    try {
+      // 사용자의 계정을 삭제하기 전에 레포지토리를 통해 사용자를 검색합니다.
+      const user = await this.usersRepository.findById(userId);
 
-    if (!user) {
-      throw new Error("존재하지 않는 사용자입니다.");
+      if (!user) {
+        throw new Error("사용자를 찾을 수 없습니다.");
+      }
+
+      // 사용자가 존재하는 경우 계정을 삭제합니다.
+      const deletionResult = await this.usersRepository.delete(userId);
+
+      if (!deletionResult) {
+        throw new Error("계정 삭제에 실패했습니다.");
+      }
+
+      return { success: true, message: "계정이 성공적으로 삭제되었습니다." };
+    } catch (error) {
+      // 에러 발생 시 에러를 반환합니다.
+      return { success: false, message: error.message };
     }
-
-    await this.usersRepository.deleteUserById(userId);
-    return { message: "사용자 정보가 삭제되었습니다." };
   };
 }

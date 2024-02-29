@@ -40,22 +40,20 @@ describe("Users Repository Unit Test", () => {
 
   test("signup Method", async () => {
     const userData = {
-      userId: "1",
       email: "test@example.com",
       password: "password",
       name: "Test User",
     };
 
     const mockNewUser = {
-      userId: 1,
       eamil: userData.email,
+      password: userData.password,
       name: userData.name,
     };
 
     mockPrisma.users.create.mockResolvedValue(mockNewUser);
 
     const newUser = await usersRepository.signup(
-      userData.userId,
       userData.email,
       userData.password,
       userData.name
@@ -64,7 +62,6 @@ describe("Users Repository Unit Test", () => {
     //signup 메서드가 Prisma 클라이언트의 create 메서드를 올바르게 호출했는지 확인
     expect(mockPrisma.users.create).toHaveBeenCalledWith({
       data: {
-        userId: userData.userId,
         email: userData.email,
         password: userData.password,
         name: userData.name,
