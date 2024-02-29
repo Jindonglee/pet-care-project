@@ -1,3 +1,5 @@
+import { extractUserIdFromToken } from "../utils/tokenUtils.js";
+
 export class UsersController {
   constructor(usersService) {
     this.usersService = usersService;
@@ -22,9 +24,9 @@ export class UsersController {
       return res.status(200).json({
         message: "회원가입이 완료되었습니다.",
         data: {
-          userId: user.userId,
-          email: user.email,
-          name: user.name,
+          userId: result.user.userId,
+          email: result.user.email,
+          name: result.user.name,
         },
       });
     } catch (err) {
@@ -70,13 +72,13 @@ export class UsersController {
   signout = async (req, res, next) => {
     try {
       // 쿠키 제거
-      res.clearCookie("accessToken", { path: "/", secure: true });
-      res.clearCookie("refreshToken", { path: "/", secure: true });
 
       // 클라이언트에게 로그인 상태가 아니라는 메시지 전달
-      if (!req.cookies.accessToken || !req.cookies.refreshToken) {
+      if (!req.cookies.authorization || !req.cookies.refreshToken) {
         return res.status(401).json({ message: "로그인되어 있지 않습니다." });
       }
+      res.clearCookie("authorization", { path: "/", secure: true });
+      res.clearCookie("refreshToken", { path: "/", secure: true });
 
       // 로그아웃 메서드 호출
       const result = await this.usersService.signout();
@@ -91,7 +93,7 @@ export class UsersController {
   deleteUser = async (req, res) => {
     try {
       // 클라이언트에서 전송된 토큰을 요청 헤더에서 추출합니다.
-      const token = req.headers.authorization;
+      const token = req.cookies.authorization;
 
       // 토큰이 없는 경우 에러를 응답합니다.
       if (!token) {
@@ -103,6 +105,8 @@ export class UsersController {
 
       // 해당 계정 삭제를 서비스 레이어로 위임합니다.
       const result = await this.usersService.deleteUser(userId);
+      res.clearCookie("authorization", { path: "/", secure: true });
+      res.clearCookie("refreshToken", { path: "/", secure: true });
 
       // 계정 삭제 결과를 클라이언트에 응답합니다.
       res.json(result);

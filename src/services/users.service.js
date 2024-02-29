@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 export class UsersService {
   constructor(usersRepository, bcrypt, response) {
     this.usersRepository = usersRepository;
-    this.bcrypt = bcrypt; // bcrypt 모듈 주입
+    // this.bcrypt = bcrypt; // bcrypt 모듈 주입
     this.response = response;
   }
 
@@ -42,7 +43,7 @@ export class UsersService {
       }
 
       // 사용자 생성
-      const hashedPassword = await this.bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = await this.usersRepository.signup(
         email,
         hashedPassword,
@@ -79,7 +80,7 @@ export class UsersService {
     }
 
     // bcrypt를 사용하여 비밀번호 비교
-    const passwordMatch = await this.bcrypt.compare(password, user.password);
+    const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       throw new Error("잘못된 비밀번호입니다.");
     }
@@ -108,14 +109,14 @@ export class UsersService {
   deleteUser = async (userId) => {
     try {
       // 사용자의 계정을 삭제하기 전에 레포지토리를 통해 사용자를 검색합니다.
-      const user = await this.usersRepository.findById(userId);
+      const user = await this.usersRepository.findUserById(userId);
 
       if (!user) {
         throw new Error("사용자를 찾을 수 없습니다.");
       }
 
       // 사용자가 존재하는 경우 계정을 삭제합니다.
-      const deletionResult = await this.usersRepository.delete(userId);
+      const deletionResult = await this.usersRepository.deleteUserById(userId);
 
       if (!deletionResult) {
         throw new Error("계정 삭제에 실패했습니다.");

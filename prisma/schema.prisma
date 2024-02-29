@@ -56,6 +56,9 @@ model users {
   name        String
   email       String        @unique(map: "Users_email_key")
   password    String?
+  birth        Int?     @map("birth")
+  address      String?  @map("address")
+  remarks      String?  @map("remarks")
   createdAt   DateTime      @default(now())
   reservation reservation[]
   review      review[]
@@ -65,6 +68,7 @@ model users {
 model profile {
   profileId    Int      @id @default(autoincrement()) @map("profileId")
   userId       Int      @map("userId")
+  name         String   @map("name")
   birth        Int?     @map("birth")
   address      String?  @map("address")
   remarks      String?  @map("remarks")

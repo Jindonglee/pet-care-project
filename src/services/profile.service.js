@@ -34,11 +34,11 @@ export class ProfileService {
 
       await this.profileRepository.updateProfile(
         userId,
+        newPwd,
         name,
         birth,
         address,
-        remarks,
-        profileImage
+        remarks
       );
     } catch (err) {
       throw err;

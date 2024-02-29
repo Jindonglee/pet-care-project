@@ -3,25 +3,28 @@ export class ProfileRepository {
     this.prisma = prisma;
   }
   getProfile = async (userId) => {
-    const results = await this.prisma.users.findFirst({
-      where: { userId: +userId },
+    return await this.prisma.users.findFirst({
+      where: {
+        userId: +userId,
+      },
+      select: {
+        name: true,
+        birth: true,
+        address: true,
+        remarks: true,
+      },
     });
-    return results;
   };
-
-  updateProfile = async (
-    userId,
-    newPwd,
-    checkedPwd,
-    name,
-    birth,
-    address,
-    remarks,
-    profileImage
-  ) => {
-    return await this.prisma.profile.update({
+  updateProfile = async (userId, newPwd, name, birth, address, remarks) => {
+    return await this.prisma.users.update({
       where: { userId: +userId },
-      data: { newPwd, checkedPwd, name, birth, address, remarks, profileImage },
+      data: {
+        password: newPwd,
+        name,
+        birth,
+        address,
+        remarks,
+      },
     });
   };
 }
