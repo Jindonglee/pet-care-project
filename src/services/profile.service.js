@@ -1,9 +1,17 @@
-import ProfileRepository from "../repositories/profile.repository.js";
+// import ProfileRepository from "../repositories/profile.repository.js";
+import bcrypt from "bcrypt";
 
-const profileRepository = new ProfileRepository();
-
-export default class ProfileService {
-  getProfileById = async () => {};
+export class ProfileService {
+  constructor(profileRepository) {
+    this.profileRepository = profileRepository;
+  }
+  getProfile = async (userId) => {
+    try {
+      await this.prisma.profile.findUnique({ where: { userId } });
+    } catch (err) {
+      throw err;
+    }
+  };
 
   updateProfile = async (
     userId,
@@ -15,21 +23,25 @@ export default class ProfileService {
     remarks,
     profileImage
   ) => {
-    if (newPwd !== checkedPwd) {
-      throw new Error(
-        "새 비밀번호와 비밀번호 확인이 일치하지 않습니다. 확인해주세요!"
+    try {
+      if (newPwd !== checkedPwd) {
+        throw new Error(
+          "새 비밀번호와 비밀번호 확인이 일치하지 않습니다. 확인해주세요!"
+        );
+      }
+
+      await bcrypt.hash(newPwd, 10);
+
+      await this.profileRepository.updateProfile(
+        userId,
+        name,
+        birth,
+        address,
+        remarks,
+        profileImage
       );
+    } catch (err) {
+      throw err;
     }
-
-    await bcrypt.hash(newPwd, 10);
-
-    await ProfileRepository.updateProfile(
-      userId,
-      name,
-      birth,
-      address,
-      remarks,
-      profileImage
-    );
   };
 }
