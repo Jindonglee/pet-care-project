@@ -24,18 +24,9 @@ let mockUsersRepository = {
   signup: jest.fn(),
   signin: jest.fn(),
   signout: jest.fn(),
-  verifyUserPassword: jest.fn(),
-
-  deleteUser: jest.fn((userId, password) => {
-    if (password === "correct_password") {
-      return Promise.resolve({ success: true });
-    } else {
-      return Promise.resolve({
-        success: false,
-        message: "비밀번호가 올바르지 않습니다.",
-      });
-    }
-  }),
+  findById: jest.fn(),
+  deleteUser: jest.fn(),
+  delete: jest.fn().mockResolvedValue(true),
 };
 
 // usersService의 Repository를 Mock Repository로 의존성을 주입합니다.
@@ -44,7 +35,7 @@ let usersService = new UsersService(
   mockBcrypt,
   mockResponse
 );
-
+console.log(usersService);
 describe("Users Service Unit Test", () => {
   // 각 test가 실행되기 전에 실행됩니다.
   beforeEach(() => {
@@ -312,42 +303,70 @@ describe("Users Service Unit Test", () => {
   });
 });
 
-test("should return failure message if password is incorrect", async () => {
+test("deleteUser should delete user account successfully", async () => {
+  // Mock 데이터 설정
   const userId = "user123";
-  const Password = "incorrectPassword";
+  const mockUser = { userId: "user123" };
 
-  mockUsersRepository.verifyUserPassword.mockResolvedValueOnce(true); // 올바른 비밀번호일 때
-  // Mock verifyUserPassword 메서드가 올바르지 않은 비밀번호를 반환하도록 설정
+  // UserRepository findById Mock 설정
+  mockUsersRepository.findById.mockResolvedValue(mockUser);
 
-  // deleteUser 메서드 호출
-  const result = await usersService.deleteUser(userId, Password);
+  // UserRepository delete Mock 설정
+  mockUsersRepository.delete.mockResolvedValue(true);
 
-  // deleteUser 메서드가 실패한 경우 result 객체가 정의되어 있는지 확인
-  expect(result).toBeDefined();
+  // deleteUser 호출
+  const result = await usersService.deleteUser(userId);
 
-  // deleteUser 메서드가 실패한 경우 success 속성이 없는지 확인
-  expect(result).not.toHaveProperty("success");
+  // 올바른 사용자를 찾는지 확인
+  expect(mockUsersRepository.findById).toHaveBeenCalledWith(userId);
 
-  // deleteUser 메서드가 실패한 경우 message 속성이 적절한 메시지인지 확인
-  expect(result.message).toBe("비밀번호가 올바르지 않습니다.");
+  // deleteUser가 호출되었는지 확인
+  expect(mockUsersRepository.delete).toHaveBeenCalledWith(userId);
+
+  // 계정 삭제 성공 여부 확인
+  expect(result).toEqual({
+    success: true,
+    message: "계정이 성공적으로 삭제되었습니다.",
+  });
 });
 
-test("should successfully delete user if password is correct", async () => {
+test("deleteUser should return failure message if user deletion fails", async () => {
+  // Mock 데이터 설정
   const userId = "user123";
-  const Password = "correctPassword";
+  const mockUser = { userId: "user123" };
 
-  // Mock verifyUserPassword 메서드가 올바른 비밀번호를 반환하도록 설정
-  mockUsersRepository.verifyUserPassword.mockResolvedValueOnce(true);
+  // UserRepository findById Mock 설정
+  mockUsersRepository.findById.mockResolvedValue(mockUser);
 
-  // deleteUser 메서드가 성공적으로 실행되도록 설정
-  mockUsersRepository.deleteUser.mockResolvedValueOnce({ success: true });
+  // UserRepository delete Mock 설정 (삭제 실패)
+  mockUsersRepository.delete.mockResolvedValue(false);
 
-  // deleteUser 메서드 호출
-  const result = await usersService.deleteUser(userId, Password);
+  // deleteUser 메서드를 호출하고 반환값을 확인합니다.
+  const result = await usersService.deleteUser(userId);
 
-  // 비밀번호가 올바른 경우 사용자 삭제가 성공적으로 이루어졌는지 확인
-  expect(result.success).toBe(true);
+  // deleteUser 메서드가 호출되었는지 확인합니다.
+  expect(mockUsersRepository.delete).toHaveBeenCalledWith(userId);
 
-  // deleteUser 메서드가 올바른 userId로 호출되었는지 확인
-  expect(mockUsersRepository.deleteUser).toHaveBeenCalledWith(userId);
+  // 계정 삭제 실패 메시지 확인
+  expect(result).toEqual({
+    success: false,
+    message: "계정 삭제에 실패했습니다.",
+  });
+});
+
+test("deleteUser should throw an error if user does not exist", async () => {
+  // Mock 데이터 설정
+  const userId = "nonexistentUser";
+
+  // UserRepository findById Mock 설정 (사용자가 존재하지 않음)
+  mockUsersRepository.findById.mockResolvedValue(null);
+
+  // deleteUser 함수 호출 및 반환값 확인
+  const result = await usersService.deleteUser(userId);
+
+  // 사용자를 찾을 수 없을 때 실패 메시지 반환 여부 확인
+  expect(result).toEqual({
+    message: "사용자를 찾을 수 없습니다.",
+    success: false,
+  });
 });

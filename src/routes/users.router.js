@@ -22,7 +22,4 @@ router.post("/user/sign-out", usersController.signout);
 //계정탈퇴
 router.delete("/user/delete/:userId", usersController.deleteUser);
 
-//토근 발급
-router.post("/token", authController.refreshToken);
-
 export default router;

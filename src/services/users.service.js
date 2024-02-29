@@ -103,24 +103,28 @@ export class UsersService {
   signout = async () => {
     return { message: "로그아웃 되었습니다." };
   };
-}
-// 4. 계정 삭제
-deleteUser = async (userId) => {
-  try {
-    // 사용자의 계정을 삭제하기 전에 레포지토리를 통해 사용자를 검색합니다.
-    const user = await this.usersRepository.findById(userId);
 
-    // 사용자가 존재하지 않는 경우 에러를 throw합니다.
-    if (!user) {
-      throw new Error("사용자를 찾을 수 없습니다.");
+  // 4. 계정 삭제
+  deleteUser = async (userId) => {
+    try {
+      // 사용자의 계정을 삭제하기 전에 레포지토리를 통해 사용자를 검색합니다.
+      const user = await this.usersRepository.findById(userId);
+
+      if (!user) {
+        throw new Error("사용자를 찾을 수 없습니다.");
+      }
+
+      // 사용자가 존재하는 경우 계정을 삭제합니다.
+      const deletionResult = await this.usersRepository.delete(userId);
+
+      if (!deletionResult) {
+        throw new Error("계정 삭제에 실패했습니다.");
+      }
+
+      return { success: true, message: "계정이 성공적으로 삭제되었습니다." };
+    } catch (error) {
+      // 에러 발생 시 에러를 반환합니다.
+      return { success: false, message: error.message };
     }
-
-    // 사용자가 존재하는 경우 계정을 삭제합니다.
-    await this.usersRepository.delete(userId);
-
-    return { success: true, message: "계정이 성공적으로 삭제되었습니다." };
-  } catch (error) {
-    // 에러 발생 시 에러 메시지를 반환합니다.
-    return { success: false, message: error.message };
-  }
-};
+  };
+}
