@@ -9,13 +9,11 @@ export class ProfileController {
   getProfile = async (req, res, next) => {
     try {
       const { userId } = req.user;
+      console.log(userId);
 
       // 해당하는 userId로 user가 있는지 확인
-      const user = await this.prisma.users.findFirst({
-        where: {
-          userId,
-        },
-      });
+      const user = await this.profileService.getProfile(userId);
+      console.log(user);
 
       if (!user) {
         return res.status(400).send({

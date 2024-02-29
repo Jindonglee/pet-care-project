@@ -3,7 +3,10 @@ export class ProfileRepository {
     this.prisma = prisma;
   }
   getProfile = async (userId) => {
-    return await this.prisma.users.findFirst({ where: { userId } });
+    const results = await this.prisma.users.findFirst({
+      where: { userId: +userId },
+    });
+    return results;
   };
 
   updateProfile = async (

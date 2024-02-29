@@ -7,7 +7,7 @@ export class ProfileService {
   }
   getProfile = async (userId) => {
     try {
-      await this.prisma.profile.findUnique({ where: { userId } });
+      return await this.profileRepository.getProfile(userId);
     } catch (err) {
       throw err;
     }
